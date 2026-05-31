@@ -1,14 +1,4 @@
 <?php
-// Load .env file into $_ENV if it exists
-$envFile = __DIR__ . '/.env';
-if (file_exists($envFile)) {
-    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        if ($line[0] === '#' || strpos($line, '=') === false) continue;
-        [$key, $value] = explode('=', $line, 2);
-        $_ENV[trim($key)] = trim($value);
-    }
-}
-
 // Application Configuration
 
 define('APP_NAME', 'Jersey Store Inventory Management');

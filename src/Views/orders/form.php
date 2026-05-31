@@ -15,8 +15,8 @@ foreach ($uniqueProducts as $pid => $pname) {
 ?>
 
 <div class="py-4">
-    <h1><?= $order ? 'Edit Order' : 'Create Order'; ?></h1>
-    <p class="text-muted"><?= $order ? 'Update order information' : 'Create a new customer order'; ?></p>
+    <h1 class="ps-2"><?= $order ? 'Edit Order' : 'Create Order'; ?></h1>
+    <p class="text-muted ps-2"><?= $order ? 'Update order information' : 'Create a new customer order'; ?></p>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger">
@@ -139,10 +139,28 @@ foreach ($uniqueProducts as $pid => $pname) {
                 </div>
 
                 <div class="d-flex justify-content-end mb-4">
-                    <div class="card border-0 bg-light" style="min-width: 200px;">
+                    <div class="card border-0 bg-light" style="min-width: 280px;">
                         <div class="card-body py-3 px-4">
-                            <p class="text-muted small mb-1">Order Total</p>
-                            <h3 class="mb-0">৳<span id="order-total">0</span></h3>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small">Items Subtotal</span>
+                                <strong>৳<span id="order-subtotal">0</span></strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="text-muted small mb-0" for="delivery_charge">Delivery Charge</label>
+                                <div style="width: 110px;">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">৳</span>
+                                        <input type="number" id="delivery_charge" name="delivery_charge"
+                                               class="form-control text-end"
+                                               value="<?= htmlspecialchars((string)($order['delivery_charge'] ?? $old['delivery_charge'] ?? 80)); ?>"
+                                               min="0" step="1" onchange="updateOrderTotal()">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-top pt-2">
+                                <p class="text-muted small mb-1">Order Total</p>
+                                <h3 class="mb-0">৳<span id="order-total">0</span></h3>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -338,7 +356,7 @@ function updateRowTotal(idx) {
 }
 
 function updateOrderTotal() {
-    let total = 0;
+    let subtotal = 0;
     document.querySelectorAll('[data-item-row]').forEach(row => {
         const idx = row.dataset.itemRow;
         const qty = parseInt(document.querySelector(`.qty-input-${idx}`)?.value) || 0;
@@ -347,9 +365,11 @@ function updateOrderTotal() {
         const namekitChecked = document.getElementById(`namekit-chk-${idx}`)?.checked;
         const patchesExtra = patchesChecked ? (parseFloat(document.querySelector(`.patches-extra-${idx}`)?.value) || 0) : 0;
         const namekitExtra = namekitChecked ? (parseFloat(document.querySelector(`.namekit-extra-${idx}`)?.value) || 0) : 0;
-        total += (unitPrice * qty) + patchesExtra + namekitExtra;
+        subtotal += (unitPrice * qty) + patchesExtra + namekitExtra;
     });
-    document.getElementById('order-total').textContent = total.toFixed(0);
+    const deliveryCharge = parseFloat(document.getElementById('delivery_charge')?.value) || 0;
+    document.getElementById('order-subtotal').textContent = subtotal.toFixed(0);
+    document.getElementById('order-total').textContent = (subtotal + deliveryCharge).toFixed(0);
 }
 
 document.addEventListener('DOMContentLoaded', function () {

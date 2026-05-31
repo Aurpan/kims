@@ -147,6 +147,8 @@ class OrderController extends Controller
             return;
         }
 
+        $deliveryCharge = max(0, (float) ($_POST['delivery_charge'] ?? 80));
+
         $orderModel = new Order();
         $variantModel = new ProductVariant();
 
@@ -204,7 +206,7 @@ class OrderController extends Controller
                 $variantModel->updateStock($variantId, -$quantity);
             }
 
-            $orderModel->update($orderId, ['total_amount' => $totalAmount]);
+            $orderModel->update($orderId, ['total_amount' => $totalAmount + $deliveryCharge]);
 
             $db->commit();
 
@@ -367,6 +369,8 @@ class OrderController extends Controller
             return;
         }
 
+        $deliveryCharge = max(0, (float) ($_POST['delivery_charge'] ?? 80));
+
         $variantModel = new ProductVariant();
         $itemModel    = new OrderItem();
 
@@ -422,7 +426,7 @@ class OrderController extends Controller
                 'payment_status'     => $paymentStatus,
                 'delivery_status'    => $deliveryStatus,
                 'pickup_person_name' => $pickupPersonName,
-                'total_amount'       => $totalAmount,
+                'total_amount'       => $totalAmount + $deliveryCharge,
             ]);
 
             $db->commit();
