@@ -1,0 +1,37 @@
+# Environment & secrets
+config/.env
+.env
+
+# Composer
+vendor/
+
+# Node
+node_modules/
+
+# Uploaded files (user-generated content)
+uploads/
+public/uploads/
+
+# Logs
+logs/*.log
+
+# PHP dev server artifacts
+router.php.cache
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Debug/test screenshots
+public/*.png
+public/*.jpg
+
+# phpunit
+.phpunit.result.cache

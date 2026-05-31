@@ -1,0 +1,163 @@
+<?php include __DIR__ . '/../layouts/header.php'; ?>
+
+<?php include __DIR__ . '/../layouts/sidebar.php'; ?>
+
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Orders</h1>
+        <a href="/orders/create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Order
+        </a>
+    </div>
+
+    <!-- Flash Message -->
+    <?php if ($flash): ?>
+        <div class="alert alert-<?= $flash['type'] === 'error' ? 'danger' : htmlspecialchars($flash['type']); ?> alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($flash['message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- Filters -->
+    <div class="card border-0 mb-4">
+        <div class="card-body">
+            <form method="GET" action="/orders" class="row g-3" id="ordersFilterForm">
+                <input type="hidden" name="search_type" value="order_number">
+                <div class="col-md-2">
+                    <select name="status" class="form-select" onchange="document.getElementById('ordersFilterForm').submit();">
+                        <option value="">All Status</option>
+                        <option value="pending" <?= $status === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option value="processing" <?= $status === 'processing' ? 'selected' : ''; ?>>Processing</option>
+                        <option value="shipped" <?= $status === 'shipped' ? 'selected' : ''; ?>>Shipped</option>
+                        <option value="in_transit" <?= $status === 'in_transit' ? 'selected' : ''; ?>>In Transit</option>
+                        <option value="delivered" <?= $status === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
+                        <option value="incomplete" <?= $status === 'incomplete' ? 'selected' : ''; ?>>Incomplete</option>
+                        <option value="cancelled" <?= $status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" id="searchInput" name="search" class="form-control" placeholder="Search by order #..." value="<?= htmlspecialchars($search); ?>">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="start_date" class="form-control" value="<?= htmlspecialchars($startDate); ?>" onchange="document.getElementById('ordersFilterForm').submit();">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="end_date" class="form-control" value="<?= htmlspecialchars($endDate); ?>" onchange="document.getElementById('ordersFilterForm').submit();">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th style="width: 140px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($orders)): ?>
+                        <?php foreach ($orders as $order): ?>
+                            <?php
+                            $statusBadges = [
+                                'pending' => 'warning',
+                                'processing' => 'info',
+                                'shipped' => 'primary',
+                                'in_transit' => 'secondary',
+                                'delivered' => 'success',
+                                'returned' => 'danger',
+                                'incomplete' => 'warning',
+                                'cancelled' => 'danger'
+                            ];
+                            $badgeClass = $statusBadges[$order['status']] ?? 'secondary';
+                            ?>
+                            <tr>
+                                <td>
+                                    <a href="/orders/<?= $order['id']; ?>" class="text-decoration-none fw-bold">
+                                        <?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?>
+                                    </a>
+                                </td>
+                                <td><?= htmlspecialchars($order['customer_name']); ?></td>
+                                <td>৳<?= number_format($order['total_amount'], 2); ?></td>
+                                <td>
+                                    <span class="badge bg-<?= $badgeClass; ?>">
+                                        <?= ucfirst(str_replace('_', ' ', $order['status'])); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <small><?= date('M d, Y', strtotime($order['created_at'])); ?></small>
+                                </td>
+                                <td>
+                                    <a href="/orders/<?= $order['id']; ?>" class="btn btn-sm btn-outline-primary" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="POST" action="/orders/<?= $order['id']; ?>/delete" style="display:inline;" onsubmit="return confirm('Delete this order?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <p class="text-muted mb-3"><i class="fas fa-inbox fa-3x"></i></p>
+                                <p class="text-muted mb-0">No orders found. <a href="/orders/create">Create one now</a></p>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <?php if ($totalPages > 1): ?>
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <?php if ($page > 1): ?>
+                    <li class="page-item"><a class="page-link" href="/orders">First</a></li>
+                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $page - 1; ?>">Previous</a></li>
+                <?php endif; ?>
+
+                <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+                    <li class="page-item <?= $i === $page ? 'active' : ''; ?>">
+                        <a class="page-link" href="/orders?page=<?= $i; ?>"><?= $i; ?></a>
+                    </li>
+                <?php endfor; ?>
+
+                <?php if ($page < $totalPages): ?>
+                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $page + 1; ?>">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $totalPages; ?>">Last</a></li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+    <?php endif; ?>
+</div>
+
+<script>
+let searchTimeout;
+document.getElementById('searchInput').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    if (this.value.trim() === '') {
+        document.getElementById('ordersFilterForm').submit();
+        return;
+    }
+    searchTimeout = setTimeout(() => {
+        document.getElementById('ordersFilterForm').submit();
+    }, 300);
+});
+</script>
+
+<?php include __DIR__ . '/../layouts/footer.php'; ?>
