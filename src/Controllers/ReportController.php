@@ -138,6 +138,28 @@ class ReportController extends Controller
         ]);
     }
 
+    public function stockShortage(): void
+    {
+        Auth::requireLogin();
+
+        $itemModel = new OrderItem();
+        $shortages = $itemModel->getStockShortages();
+
+        $totalShortageUnits = 0;
+        $affectedOrders = [];
+        foreach ($shortages as $row) {
+            $totalShortageUnits += (int) $row['shortage'];
+            $affectedOrders[$row['order_count']] = true;
+        }
+
+        $this->render('reports/stock_shortage', [
+            'page_title'         => 'Stock Shortage Report',
+            'shortages'          => $shortages,
+            'variantCount'       => count($shortages),
+            'totalShortageUnits' => $totalShortageUnits,
+        ]);
+    }
+
     public function export(): void
     {
         Auth::requireLogin();

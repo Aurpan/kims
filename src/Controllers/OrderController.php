@@ -70,12 +70,13 @@ class OrderController extends Controller
         }
 
         $this->render('orders/form', [
-            'page_title' => 'Create Order',
-            'order' => null,
-            'variantJson' => json_encode($variantJson),
-            'variants' => $variants,
-            'errors' => $_SESSION['errors'] ?? [],
-            'old' => $_SESSION['old_input'] ?? []
+            'page_title'    => 'Create Order',
+            'order'         => null,
+            'variantJson'   => json_encode($variantJson),
+            'variants'      => $variants,
+            'errors'        => $_SESSION['errors'] ?? [],
+            'old'           => $_SESSION['old_input'] ?? [],
+            'hasStockIssue' => false,
         ]);
 
         unset($_SESSION['errors'], $_SESSION['old_input']);
@@ -181,6 +182,7 @@ class OrderController extends Controller
             ], $timestampFields));
 
             $itemModel = new OrderItem();
+            $hasStockIssue = false;
 
             for ($i = 0; $i < count($productIds); $i++) {
                 $variantId = (int) $variantIds[$i];
@@ -200,19 +202,29 @@ class OrderController extends Controller
                 $lineTotal = ($unitPrice * $quantity) + $patchesExtra + $namekitExtra;
                 $totalAmount += $lineTotal;
 
+                $stockDeducted = (int) $variant['stock'] >= $quantity ? 1 : 0;
+                if (!$stockDeducted) $hasStockIssue = true;
+
                 $itemModel->create([
-                    'order_id' => $orderId,
-                    'product_id' => (int) $productIds[$i],
-                    'variant_id' => $variantId,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'line_total' => $lineTotal
+                    'order_id'       => $orderId,
+                    'product_id'     => (int) $productIds[$i],
+                    'variant_id'     => $variantId,
+                    'quantity'       => $quantity,
+                    'unit_price'     => $unitPrice,
+                    'line_total'     => $lineTotal,
+                    'stock_deducted' => $stockDeducted,
                 ]);
 
-                $variantModel->updateStock($variantId, -$quantity);
+                if ($stockDeducted) $variantModel->updateStock($variantId, -$quantity);
             }
 
-            $orderModel->update($orderId, ['total_amount' => $totalAmount + $deliveryCharge]);
+            if ($hasStockIssue) $deliveryStatus = 'pending';
+
+            $orderModel->update($orderId, [
+                'total_amount'    => $totalAmount + $deliveryCharge,
+                'delivery_status' => $deliveryStatus,
+                'has_stock_issue' => (int) $hasStockIssue,
+            ]);
 
             $db->commit();
 
@@ -244,13 +256,17 @@ class OrderController extends Controller
             $this->abort(404, 'Order not found');
         }
 
-        $itemModel = new OrderItem();
-        $items = $itemModel->getByOrder($id);
+        $itemModel    = new OrderItem();
+        $variantModel = new ProductVariant();
+        $items        = $itemModel->getByOrder($id);
+
+        $hasStockIssue = $this->computeStockIssue($items, $variantModel, $orderModel, $id);
 
         $this->render('orders/show', [
-            'page_title' => 'Order ' . htmlspecialchars(str_replace('ORD-', '', $order['order_number'])),
-            'order' => $order,
-            'items' => $items
+            'page_title'    => 'Order ' . htmlspecialchars(str_replace('ORD-', '', $order['order_number'])),
+            'order'         => $order,
+            'items'         => $items,
+            'hasStockIssue' => $hasStockIssue,
         ]);
     }
 
@@ -286,17 +302,19 @@ class OrderController extends Controller
             ];
         }
 
-        $itemModel = new OrderItem();
+        $itemModel     = new OrderItem();
         $existingItems = $itemModel->getByOrder($id);
+        $hasStockIssue = $this->computeStockIssue($existingItems, $variantModel, $orderModel, $id);
 
         $this->render('orders/form', [
-            'page_title' => 'Edit Order',
-            'order' => $order,
-            'variantJson' => json_encode($variantJson),
-            'variants' => $variants,
+            'page_title'    => 'Edit Order',
+            'order'         => $order,
+            'variantJson'   => json_encode($variantJson),
+            'variants'      => $variants,
             'existingItems' => $existingItems,
-            'errors' => $_SESSION['errors'] ?? [],
-            'old' => $_SESSION['old_input'] ?? []
+            'errors'        => $_SESSION['errors'] ?? [],
+            'old'           => $_SESSION['old_input'] ?? [],
+            'hasStockIssue' => $hasStockIssue,
         ]);
 
         unset($_SESSION['errors'], $_SESSION['old_input']);
@@ -384,15 +402,18 @@ class OrderController extends Controller
             $db = $orderModel->getConnection();
             $db->beginTransaction();
 
-            // Restore stock for existing items then delete them
+            // Restore stock only for items that were actually deducted
             $existingItems = $itemModel->getByOrder($id);
             foreach ($existingItems as $item) {
-                $variantModel->updateStock((int) $item['variant_id'], (int) $item['quantity']);
+                if (!$item['is_return'] && $item['stock_deducted']) {
+                    $variantModel->updateStock((int) $item['variant_id'], (int) $item['quantity']);
+                }
             }
             $db->prepare("DELETE FROM order_items WHERE order_id = ?")->execute([$id]);
 
             // Re-create items
             $totalAmount = 0;
+            $hasStockIssue = false;
             for ($i = 0; $i < count($productIds); $i++) {
                 $variantId = (int) $variantIds[$i];
                 $quantity  = (int) $quantities[$i];
@@ -410,17 +431,23 @@ class OrderController extends Controller
                 $lineTotal    = ($unitPrice * $quantity) + $patchesExtra + $namekitExtra;
                 $totalAmount += $lineTotal;
 
+                $stockDeducted = (int) $variant['stock'] >= $quantity ? 1 : 0;
+                if (!$stockDeducted) $hasStockIssue = true;
+
                 $itemModel->create([
-                    'order_id'   => $id,
-                    'product_id' => (int) $productIds[$i],
-                    'variant_id' => $variantId,
-                    'quantity'   => $quantity,
-                    'unit_price' => $unitPrice,
-                    'line_total' => $lineTotal,
+                    'order_id'       => $id,
+                    'product_id'     => (int) $productIds[$i],
+                    'variant_id'     => $variantId,
+                    'quantity'       => $quantity,
+                    'unit_price'     => $unitPrice,
+                    'line_total'     => $lineTotal,
+                    'stock_deducted' => $stockDeducted,
                 ]);
 
-                $variantModel->updateStock($variantId, -$quantity);
+                if ($stockDeducted) $variantModel->updateStock($variantId, -$quantity);
             }
+
+            if ($hasStockIssue) $deliveryStatus = 'pending';
 
             $orderModel->update($id, [
                 'customer_name'      => $customerName,
@@ -433,6 +460,7 @@ class OrderController extends Controller
                 'delivery_status'    => $deliveryStatus,
                 'pickup_person_name' => $pickupPersonName,
                 'total_amount'       => $totalAmount + $deliveryCharge,
+                'has_stock_issue'    => (int) $hasStockIssue,
             ]);
 
             $orderModel->setDeliveryTimestamp($id, $deliveryStatus, $order['delivery_status']);
@@ -686,6 +714,25 @@ class OrderController extends Controller
             $_SESSION['errors'] = ['database' => 'Failed to create exchange order: ' . $e->getMessage()];
             $this->redirect("/orders/exchange/{$id}");
         }
+    }
+
+    private function computeStockIssue(array $items, ProductVariant $variantModel, Order $orderModel, int $orderId): bool
+    {
+        $hasIssue = false;
+        foreach ($items as $item) {
+            if ($item['is_return'] ?? 0) continue;
+            if ($item['stock_deducted'] ?? 1) continue; // already deducted, no issue
+            $variant = $variantModel->find((int) $item['variant_id']);
+            if (!$variant || (int) $variant['stock'] < (int) $item['quantity']) {
+                $hasIssue = true;
+                break;
+            }
+        }
+        // Lazily update the DB flag if it changed
+        if ((int) ($orderModel->find($orderId)['has_stock_issue'] ?? 0) !== (int) $hasIssue) {
+            $orderModel->update($orderId, ['has_stock_issue' => (int) $hasIssue]);
+        }
+        return $hasIssue;
     }
 
     public function updateStatus(): void

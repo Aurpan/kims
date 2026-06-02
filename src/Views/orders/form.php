@@ -100,8 +100,17 @@ foreach ($uniqueProducts as $pid => $pname) {
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Delivery Status *</label>
-                                    <select name="delivery_status" id="deliveryStatus" class="form-select" required>
+                                    <label class="form-label">Delivery Status *
+                                        <?php if ($hasStockIssue ?? false): ?>
+                                            <span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-triangle"></i> Stock Unavailable</span>
+                                        <?php endif; ?>
+                                    </label>
+                                    <div id="stock-issue-warning" class="alert alert-warning py-1 px-2 mb-2 small" style="display:none;">
+                                        <i class="fas fa-exclamation-triangle"></i> Stock unavailable — delivery status locked to Pending.
+                                    </div>
+                                    <select name="delivery_status" id="deliveryStatus" class="form-select" required
+                                            data-server-locked="<?= ($hasStockIssue ?? false) ? '1' : '0'; ?>"
+                                            <?= ($hasStockIssue ?? false) ? 'disabled' : ''; ?>>
                                         <option value="pending" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? 'pending') === 'pending' ? 'selected' : ''; ?>>Pending</option>
                                         <option value="courier_pickup" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'courier_pickup' ? 'selected' : ''; ?>>Courier Pickup</option>
                                         <option value="personal_pickup" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'personal_pickup' ? 'selected' : ''; ?>>Personal Pickup</option>
@@ -110,6 +119,9 @@ foreach ($uniqueProducts as $pid => $pname) {
                                         <option value="returned" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'returned' ? 'selected' : ''; ?>>Returned</option>
                                         <option value="cancelled" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
                                     </select>
+                                    <?php if ($hasStockIssue ?? false): ?>
+                                        <input type="hidden" name="delivery_status" value="pending">
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="col-md-6" id="pickupNameGroup" style="display: none;">
@@ -303,6 +315,7 @@ function checkStock(idx) {
     const selectedOpt = variantSelect?.options[variantSelect.selectedIndex];
     if (!variantSelect?.value || selectedOpt?.dataset.stock === undefined) {
         stockInfoEl.innerHTML = '';
+        updateDeliveryDropdownState();
         return;
     }
 
@@ -315,6 +328,33 @@ function checkStock(idx) {
         stockInfoEl.innerHTML = `<span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle"></i> Only ${stock} in stock</span>`;
     } else {
         stockInfoEl.innerHTML = `<span class="text-muted small">In stock: ${stock}</span>`;
+    }
+    updateDeliveryDropdownState();
+}
+
+function updateDeliveryDropdownState() {
+    const deliverySelect = document.getElementById('deliveryStatus');
+    if (!deliverySelect || deliverySelect.dataset.serverLocked === '1') return;
+
+    let hasIssue = false;
+    document.querySelectorAll('[data-item-row]').forEach(row => {
+        const idx         = row.dataset.itemRow;
+        const variantSel  = document.querySelector(`.variant-select-${idx}`);
+        const selectedOpt = variantSel?.options[variantSel.selectedIndex];
+        if (!variantSel?.value) return;
+        const stock = parseInt(selectedOpt?.dataset.stock) || 0;
+        const qty   = parseInt(document.querySelector(`.qty-input-${idx}`)?.value) || 0;
+        if (stock === 0 || qty > stock) hasIssue = true;
+    });
+
+    const stockWarning = document.getElementById('stock-issue-warning');
+    if (hasIssue) {
+        deliverySelect.value    = 'pending';
+        deliverySelect.disabled = true;
+        if (stockWarning) stockWarning.style.display = '';
+    } else {
+        deliverySelect.disabled = false;
+        if (stockWarning) stockWarning.style.display = 'none';
     }
 }
 
@@ -409,6 +449,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.querySelector(`.qty-input-${idx}`).value = item.quantity;
         document.querySelector(`.unit-price-${idx}`).value = item.unit_price;
+        checkStock(idx);
         updateRowTotal(idx);
     });
     <?php else: ?>

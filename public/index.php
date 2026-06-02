@@ -95,6 +95,7 @@ $router->get('reports/revenue', 'ReportController@revenue');
 $router->get('reports/products', 'ReportController@topProducts');
 $router->get('reports/expenses', 'ReportController@expenses');
 $router->get('reports/inventory', 'ReportController@inventory');
+$router->get('reports/stock-shortage', 'ReportController@stockShortage');
 $router->post('reports/export', 'ReportController@export');
 
 // Dispatch the request

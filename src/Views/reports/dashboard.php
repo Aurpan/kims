@@ -75,6 +75,23 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-6">
+            <div class="card border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5>Stock Shortage</h5>
+                            <p class="text-muted small mb-0">Variants needed for pending orders but out of stock</p>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger opacity-50"></i>
+                    </div>
+                    <a href="/reports/stock-shortage" class="btn btn-sm btn-primary">
+                        <i class="fas fa-arrow-right"></i> View Report
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Export Section -->

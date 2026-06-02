@@ -25,6 +25,13 @@
         </div>
     </div>
 
+    <?php if (($hasStockIssue ?? false) || ($order['has_stock_issue'] ?? false)): ?>
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert" id="stockIssueAlert">
+        <i class="fas fa-exclamation-triangle fa-lg flex-shrink-0"></i>
+        <div><strong>Stock Unavailable</strong> — One or more items in this order are out of stock. Delivery status is locked to <strong>Pending</strong> until stock is replenished.</div>
+    </div>
+    <?php endif; ?>
+
     <div class="row">
         <div class="col-lg-8">
             <!-- Order Header -->
@@ -151,8 +158,20 @@
                         </thead>
                         <tbody>
                             <?php foreach ($items as $item): ?>
+                                <?php
+                                    $stockBadge = '';
+                                    if (!($item['stock_deducted'] ?? 1) && !($item['is_return'] ?? 0)) {
+                                        $currentStock = (int) ($item['current_stock'] ?? 0);
+                                        $qty = (int) $item['quantity'];
+                                        if ($currentStock === 0) {
+                                            $stockBadge = '<span class="badge bg-danger ms-1">Out of Stock</span>';
+                                        } elseif ($qty > $currentStock) {
+                                            $stockBadge = '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-triangle"></i> Only ' . $currentStock . ' in stock</span>';
+                                        }
+                                    }
+                                ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($item['product_name']); ?></td>
+                                    <td><?= htmlspecialchars($item['product_name']); ?><?= $stockBadge; ?></td>
                                     <td><?= htmlspecialchars($item['size']); ?></td>
                                     <td class="text-center"><?= $item['quantity']; ?></td>
                                     <td class="text-end">৳<?= number_format($item['unit_price'], 2); ?></td>
