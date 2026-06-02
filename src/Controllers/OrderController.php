@@ -480,6 +480,214 @@ class OrderController extends Controller
         $this->redirect('/orders');
     }
 
+    public function exchange(): void
+    {
+        Auth::requireLogin();
+
+        $id = (int) ($_GET['id'] ?? 0);
+        if ($id <= 0) $this->abort(404, 'Order not found');
+
+        $orderModel = new Order();
+        $order = $orderModel->find($id);
+        if (!$order) $this->abort(404, 'Order not found');
+
+        if ($order['delivery_status'] !== 'delivered') {
+            $this->setFlash('error', 'Only delivered orders can be exchanged.');
+            $this->redirect("/orders/{$id}");
+            return;
+        }
+
+        $variantModel = new ProductVariant();
+        $variants = $variantModel->getAllWithProduct();
+
+        $variantJson = [];
+        foreach ($variants as $v) {
+            $variantJson[$v['product_id']][] = [
+                'id'    => $v['id'],
+                'sku'   => $v['sku'],
+                'size'  => $v['size'],
+                'price' => $v['variant_price'] ?? $v['base_price'],
+                'stock' => (int) ($v['stock'] ?? 0)
+            ];
+        }
+
+        $itemModel = new OrderItem();
+        $items = $itemModel->getByOrder($id);
+
+        $this->render('orders/exchange', [
+            'page_title'  => 'Exchange Order',
+            'order'       => $order,
+            'items'       => $items,
+            'variantJson' => json_encode($variantJson),
+            'variants'    => $variants,
+            'errors'      => $_SESSION['errors'] ?? [],
+        ]);
+
+        unset($_SESSION['errors']);
+    }
+
+    public function storeExchange(): void
+    {
+        Auth::requireLogin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirectBack();
+        }
+
+        $id = (int) ($_GET['id'] ?? 0);
+        if ($id <= 0) $this->abort(404, 'Order not found');
+
+        $orderModel = new Order();
+        $originalOrder = $orderModel->find($id);
+        if (!$originalOrder) $this->abort(404, 'Order not found');
+
+        $customerName     = $_POST['customer_name'] ?? '';
+        $customerEmail    = $_POST['customer_email'] ?? '';
+        $customerPhone    = $_POST['customer_phone'] ?? '';
+        $deliveryAddress  = $_POST['delivery_address'] ?? '';
+        $notes            = $_POST['notes'] ?? '';
+        $paymentMethod    = $_POST['payment_method'] ?? 'cod';
+        $paymentStatus    = $_POST['payment_status'] ?? 'unpaid';
+        $deliveryStatus   = $_POST['delivery_status'] ?? 'pending';
+        $pickupPersonName = $_POST['pickup_person_name'] ?? null;
+        $deliveryCharge   = max(0, (float) ($_POST['delivery_charge'] ?? 80));
+
+        $returnVariantIds   = $_POST['return_variant_id'] ?? [];
+        $returnProductIds   = $_POST['return_product_id'] ?? [];
+        $returnQuantities   = $_POST['return_quantity'] ?? [];
+        $returnUnitPrices   = $_POST['return_unit_price'] ?? [];
+        $returnAmountTotal  = max(0, (float) ($_POST['return_amount_total'] ?? 0));
+
+        $newProductIds = $_POST['product_id'] ?? [];
+        $newVariantIds = $_POST['variant_id'] ?? [];
+        $newQuantities = $_POST['quantity'] ?? [];
+
+        $errors = $this->validate(
+            ['customer_name' => $customerName, 'customer_phone' => $customerPhone, 'delivery_address' => $deliveryAddress],
+            ['customer_name' => 'required|min:2|max:255', 'customer_phone' => 'required|min:5|max:20', 'delivery_address' => 'required|min:5|max:500']
+        );
+
+        if (empty($returnVariantIds) && empty($newVariantIds)) {
+            $errors['items'] = 'Add at least one returned or new item to the exchange list.';
+        }
+
+        if (!in_array($paymentMethod, ['cod', 'bkash', 'bank'])) {
+            $errors['payment_method'] = 'Invalid payment method';
+        }
+        if (!in_array($paymentStatus, ['unpaid', 'paid'])) {
+            $errors['payment_status'] = 'Invalid payment status';
+        }
+        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
+            $errors['delivery_status'] = 'Invalid delivery status';
+        }
+        if ($deliveryStatus === 'personal_pickup' && (empty($pickupPersonName) || strlen(trim($pickupPersonName)) < 2)) {
+            $errors['pickup_person_name'] = 'Pickup person name is required for personal pickup';
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['errors'] = $errors;
+            $this->redirect("/orders/exchange/{$id}");
+            return;
+        }
+
+        $variantModel = new ProductVariant();
+        $itemModel    = new OrderItem();
+
+        try {
+            $db = $orderModel->getConnection();
+            $db->beginTransaction();
+
+            $orderNumber = date('Y') . '-' . strtoupper(substr(uniqid(), -5));
+            $totalAmount = 0;
+
+            $now = date('Y-m-d H:i:s');
+            $timestampFields = [];
+            if ($deliveryStatus === 'delivered')  $timestampFields['delivered_at'] = $now;
+            elseif ($deliveryStatus === 'cancelled') $timestampFields['cancelled_at'] = $now;
+            elseif ($deliveryStatus === 'returned')  $timestampFields['returned_at']  = $now;
+
+            $exchangeOrderId = $orderModel->create(array_merge([
+                'exchange_for_order_id' => $id,
+                'order_number'          => $orderNumber,
+                'customer_name'         => $customerName,
+                'customer_email'        => $customerEmail,
+                'customer_phone'        => $customerPhone,
+                'delivery_address'      => $deliveryAddress,
+                'notes'                 => $notes,
+                'status'                => 'pending',
+                'total_amount'          => 0,
+                'payment_method'        => $paymentMethod,
+                'payment_status'        => $paymentStatus,
+                'delivery_status'       => $deliveryStatus,
+                'pickup_person_name'    => $pickupPersonName,
+            ], $timestampFields));
+
+            // Process returned items — stock is restored per item; financial total uses the user-edited subtotal
+            $totalAmount -= $returnAmountTotal;
+            foreach ($returnVariantIds as $i => $variantId) {
+                $variantId = (int) $variantId;
+                $qty       = (int) ($returnQuantities[$i] ?? 0);
+                $price     = (float) ($returnUnitPrices[$i] ?? 0);
+                if ($qty <= 0) continue;
+
+                $itemModel->create([
+                    'order_id'   => $exchangeOrderId,
+                    'product_id' => (int) ($returnProductIds[$i] ?? 0),
+                    'variant_id' => $variantId,
+                    'quantity'   => $qty,
+                    'unit_price' => -$price,
+                    'line_total' => -($price * $qty),
+                    'is_return'  => 1,
+                ]);
+
+                $variantModel->updateStock($variantId, $qty); // restore stock
+            }
+
+            // Process new items (positive line totals, deduct stock)
+            for ($i = 0; $i < count($newProductIds); $i++) {
+                $variantId = (int) ($newVariantIds[$i] ?? 0);
+                $qty       = (int) ($newQuantities[$i] ?? 0);
+                if ($qty <= 0 || !$variantId) continue;
+
+                $variant   = $variantModel->find($variantId);
+                if (!$variant) continue;
+
+                $unitPrice    = (float) ($_POST['unit_price'][$i] ?? 0);
+                if ($unitPrice <= 0) {
+                    $unitPrice = (float) ($variant['variant_price'] ?? $variant['base_price'] ?? 0);
+                }
+                $patchesExtra = (float) ($_POST['patches_extra'][$i] ?? 0);
+                $namekitExtra = (float) ($_POST['namekit_extra'][$i] ?? 0);
+                $lineTotal    = ($unitPrice * $qty) + $patchesExtra + $namekitExtra;
+                $totalAmount += $lineTotal;
+
+                $itemModel->create([
+                    'order_id'   => $exchangeOrderId,
+                    'product_id' => (int) $newProductIds[$i],
+                    'variant_id' => $variantId,
+                    'quantity'   => $qty,
+                    'unit_price' => $unitPrice,
+                    'line_total' => $lineTotal,
+                    'is_return'  => 0,
+                ]);
+
+                $variantModel->updateStock($variantId, -$qty);
+            }
+
+            $orderModel->update($exchangeOrderId, ['total_amount' => $totalAmount + $deliveryCharge]);
+
+            $db->commit();
+
+            $this->setFlash('success', 'Exchange order created successfully!');
+            $this->redirect("/orders/{$exchangeOrderId}");
+
+        } catch (\Exception $e) {
+            $db->rollback();
+            $_SESSION['errors'] = ['database' => 'Failed to create exchange order: ' . $e->getMessage()];
+            $this->redirect("/orders/exchange/{$id}");
+        }
+    }
+
     public function updateStatus(): void
     {
         Auth::requireLogin();

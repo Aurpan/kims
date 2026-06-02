@@ -8,7 +8,11 @@
             <h1 class="mb-0"><?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?></h1>
         </div>
         <div class="d-flex gap-2">
-            <?php if (!in_array($order['delivery_status'], ['delivered', 'cancelled', 'on_hold'])): ?>
+            <?php if ($order['delivery_status'] === 'delivered'): ?>
+            <a href="/orders/exchange/<?= $order['id']; ?>" class="btn btn-outline-primary">
+                <i class="fas fa-exchange-alt"></i> Exchange
+            </a>
+            <?php elseif (!in_array($order['delivery_status'], ['cancelled', 'on_hold'])): ?>
             <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-edit"></i> Edit
             </a>

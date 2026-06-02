@@ -103,9 +103,11 @@
                                     <small><?= date('M d, Y', strtotime($order['created_at'])); ?></small>
                                 </td>
                                 <td>
+                                    <?php if ($deliveryStatus !== 'delivered'): ?>
                                     <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <?php endif; ?>
                                     <form method="POST" action="/orders/<?= $order['id']; ?>/delete" style="display:inline;" onsubmit="return confirm('Delete this order?');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="Delete">
                                             <i class="fas fa-trash"></i>

@@ -77,6 +77,8 @@ $router->get('orders/edit/{id}', 'OrderController@edit');
 $router->post('orders/update/{id}', 'OrderController@update');
 $router->post('orders/{id}/status', 'OrderController@updateStatus');
 $router->post('orders/{id}/delete', 'OrderController@delete');
+$router->get('orders/exchange/{id}', 'OrderController@exchange');
+$router->post('orders/exchange/store/{id}', 'OrderController@storeExchange');
 
 // Expense routes
 $router->get('expenses', 'ExpenseController@list');
