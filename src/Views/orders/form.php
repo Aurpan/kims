@@ -107,6 +107,7 @@ foreach ($uniqueProducts as $pid => $pname) {
                                         <option value="personal_pickup" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'personal_pickup' ? 'selected' : ''; ?>>Personal Pickup</option>
                                         <option value="delivered" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
                                         <option value="on_hold" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'on_hold' ? 'selected' : ''; ?>>On Hold</option>
+                                        <option value="returned" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'returned' ? 'selected' : ''; ?>>Returned</option>
                                         <option value="cancelled" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
                                     </select>
                                 </div>

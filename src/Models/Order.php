@@ -5,9 +5,20 @@ class Order extends Model
 {
     protected string $table = 'orders';
 
+    public function find(int $id): ?array
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE id = ? AND is_deleted = 0";
+        return $this->db->fetch($sql, [$id]);
+    }
+
+    public function softDelete(int $id): int
+    {
+        return $this->db->update($this->table, ['is_deleted' => 1], 'id = ?', [$id]);
+    }
+
     public function findByOrderNumber(string $orderNumber): ?array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE order_number = ?";
+        $sql = "SELECT * FROM {$this->table} WHERE order_number = ? AND is_deleted = 0";
         return $this->db->fetch($sql, [$orderNumber]);
     }
 
@@ -15,10 +26,10 @@ class Order extends Model
     {
         $offset = ($page - 1) * $perPage;
 
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = ?";
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = ? AND is_deleted = 0";
         $total = $this->db->fetch($countSql, [$status])['total'];
 
-        $sql = "SELECT * FROM {$this->table} WHERE status = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT * FROM {$this->table} WHERE status = ? AND is_deleted = 0 ORDER BY created_at DESC LIMIT ? OFFSET ?";
         $items = $this->db->fetchAll($sql, [$status, $perPage, $offset]);
 
         return [
@@ -32,13 +43,13 @@ class Order extends Model
 
     public function getByDateRange(string $startDate, string $endDate): array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE DATE(created_at) BETWEEN ? AND ? ORDER BY created_at DESC";
+        $sql = "SELECT * FROM {$this->table} WHERE is_deleted = 0 AND DATE(created_at) BETWEEN ? AND ? ORDER BY created_at DESC";
         return $this->db->fetchAll($sql, [$startDate, $endDate]);
     }
 
     public function searchOrders(array $filters, int $page = 1, int $perPage = 20): array
     {
-        $query = "SELECT * FROM {$this->table} WHERE 1=1";
+        $query = "SELECT * FROM {$this->table} WHERE is_deleted = 0";
         $params = [];
 
         if (!empty($filters['status'])) {
@@ -101,15 +112,33 @@ class Order extends Model
         );
     }
 
+    public function setDeliveryTimestamp(int $orderId, string $newStatus, string $oldStatus): void
+    {
+        $now = date('Y-m-d H:i:s');
+        $updateData = [];
+
+        if ($newStatus === 'delivered' && $oldStatus !== 'delivered') {
+            $updateData['delivered_at'] = $now;
+        } elseif ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
+            $updateData['cancelled_at'] = $now;
+        } elseif ($newStatus === 'returned' && $oldStatus !== 'returned') {
+            $updateData['returned_at'] = $now;
+        }
+
+        if (!empty($updateData)) {
+            $this->db->update($this->table, $updateData, 'id = ?', [$orderId]);
+        }
+    }
+
     public function getStatusDistribution(): array
     {
-        $sql = "SELECT status, COUNT(*) as count FROM {$this->table} GROUP BY status";
+        $sql = "SELECT status, COUNT(*) as count FROM {$this->table} WHERE is_deleted = 0 GROUP BY status";
         return $this->db->fetchAll($sql);
     }
 
     public function getTotalRevenue(string $startDate = null, string $endDate = null): float
     {
-        $sql = "SELECT SUM(total_amount) as total FROM {$this->table} WHERE status != 'returned'";
+        $sql = "SELECT SUM(total_amount) as total FROM {$this->table} WHERE is_deleted = 0 AND status != 'returned'";
         $params = [];
 
         if ($startDate && $endDate) {
@@ -123,14 +152,20 @@ class Order extends Model
 
     public function getDailyRevenue(string $date): float
     {
-        $sql = "SELECT SUM(total_amount) as total FROM {$this->table} WHERE DATE(created_at) = ?";
+        $sql = "SELECT SUM(total_amount) as total FROM {$this->table} WHERE is_deleted = 0 AND DATE(created_at) = ?";
         $result = $this->db->fetch($sql, [$date]);
         return (float) ($result['total'] ?? 0);
     }
 
+    public function getAllActive(): array
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE is_deleted = 0 ORDER BY created_at DESC";
+        return $this->db->fetchAll($sql);
+    }
+
     public function getRecentOrders(int $limit = 10): array
     {
-        $sql = "SELECT id, order_number, customer_name, total_amount, status, created_at FROM {$this->table} ORDER BY created_at DESC LIMIT ?";
+        $sql = "SELECT id, order_number, customer_name, total_amount, status, created_at FROM {$this->table} WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT ?";
         return $this->db->fetchAll($sql, [$limit]);
     }
 }

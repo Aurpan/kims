@@ -163,7 +163,7 @@ class ReportController extends Controller
     private function exportOrders(): void
     {
         $orderModel = new Order();
-        $orders = $orderModel->all();
+        $orders = $orderModel->getAllActive();
 
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="orders_' . date('Y-m-d') . '.csv"');

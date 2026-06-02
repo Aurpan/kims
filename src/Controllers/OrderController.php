@@ -131,7 +131,7 @@ class OrderController extends Controller
         }
 
         // Validate delivery status
-        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled'])) {
+        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
 
@@ -159,7 +159,13 @@ class OrderController extends Controller
             $orderNumber = date('Y') . '-' . strtoupper(substr(uniqid(), -5));
             $totalAmount = 0;
 
-            $orderId = $orderModel->create([
+            $now = date('Y-m-d H:i:s');
+            $timestampFields = [];
+            if ($deliveryStatus === 'delivered')  $timestampFields['delivered_at'] = $now;
+            elseif ($deliveryStatus === 'cancelled') $timestampFields['cancelled_at'] = $now;
+            elseif ($deliveryStatus === 'returned')  $timestampFields['returned_at']  = $now;
+
+            $orderId = $orderModel->create(array_merge([
                 'order_number' => $orderNumber,
                 'customer_name' => $customerName,
                 'customer_email' => $customerEmail,
@@ -172,7 +178,7 @@ class OrderController extends Controller
                 'payment_status' => $paymentStatus,
                 'delivery_status' => $deliveryStatus,
                 'pickup_person_name' => $pickupPersonName
-            ]);
+            ], $timestampFields));
 
             $itemModel = new OrderItem();
 
@@ -355,7 +361,7 @@ class OrderController extends Controller
         if (!in_array($paymentStatus, ['unpaid', 'paid'])) {
             $errors['payment_status'] = 'Invalid payment status';
         }
-        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled'])) {
+        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
         if ($deliveryStatus === 'personal_pickup' && (empty($pickupPersonName) || strlen(trim($pickupPersonName)) < 2)) {
@@ -429,6 +435,8 @@ class OrderController extends Controller
                 'total_amount'       => $totalAmount + $deliveryCharge,
             ]);
 
+            $orderModel->setDeliveryTimestamp($id, $deliveryStatus, $order['delivery_status']);
+
             $db->commit();
             $this->setFlash('success', 'Order updated successfully!');
             $this->redirect("/orders/{$id}");
@@ -466,7 +474,7 @@ class OrderController extends Controller
             $variantModel->updateStock((int) $item['variant_id'], (int) $item['quantity']);
         }
 
-        $orderModel->delete($id);
+        $orderModel->softDelete($id);
 
         $this->setFlash('success', 'Order deleted successfully!');
         $this->redirect('/orders');

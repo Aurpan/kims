@@ -3,7 +3,7 @@
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
 <div class="py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-3 px-md-0">
         <h1>Orders</h1>
         <a href="/orders/create" class="btn btn-primary">
             <i class="fas fa-plus"></i> New Order
@@ -56,7 +56,7 @@
                     <tr>
                         <th>Order #</th>
                         <th>Customer</th>
-                        <th>Total Amount</th>
+                        <th>Amount</th>
                         <th>Status</th>
                         <th>Date</th>
                         <th style="width: 140px;">Actions</th>
@@ -66,43 +66,48 @@
                     <?php if (!empty($orders)): ?>
                         <?php foreach ($orders as $order): ?>
                             <?php
-                            $statusBadges = [
-                                'pending' => 'warning',
-                                'processing' => 'info',
-                                'shipped' => 'primary',
-                                'in_transit' => 'secondary',
-                                'delivered' => 'success',
-                                'returned' => 'danger',
-                                'incomplete' => 'warning',
-                                'cancelled' => 'danger'
+                            $deliveryStatus = $order['delivery_status'] ?? '';
+                            $rowClass = '';
+                            if ($deliveryStatus === 'delivered') $rowClass = 'table-success';
+                            elseif (in_array($deliveryStatus, ['on_hold', 'cancelled', 'returned'])) $rowClass = 'table-danger';
+                            $deliveryBadges = [
+                                'pending'         => 'warning text-dark',
+                                'courier_pickup'  => 'warning text-dark',
+                                'personal_pickup' => 'warning text-dark',
+                                'in_transit'      => 'warning text-dark',
+                                'delivered'       => 'success',
+                                'on_hold'         => 'danger',
+                                'cancelled'       => 'danger',
+                                'returned'        => 'danger',
                             ];
-                            $badgeClass = $statusBadges[$order['status']] ?? 'secondary';
+                            $deliveryBadgeClass = $deliveryBadges[$deliveryStatus] ?? 'warning text-dark';
+                            $paymentBadgeClass = $order['payment_status'] === 'paid' ? 'success' : 'danger';
                             ?>
-                            <tr>
+                            <tr class="<?= $rowClass; ?>">
                                 <td>
                                     <a href="/orders/<?= $order['id']; ?>" class="text-decoration-none fw-bold">
                                         <?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?>
                                     </a>
                                 </td>
                                 <td><?= htmlspecialchars($order['customer_name']); ?></td>
-                                <td>৳<?= number_format($order['total_amount'], 2); ?></td>
+                                <td><small>৳<?= number_format($order['total_amount'], 2); ?></small></td>
                                 <td>
-                                    <span class="badge bg-<?= $badgeClass; ?>">
-                                        <?= ucfirst(str_replace('_', ' ', $order['status'])); ?>
-                                    </span>
+                                    <div><span class="badge bg-<?= $paymentBadgeClass; ?>" style="font-size:0.7rem;">
+                                        <?= ucfirst($order['payment_status']); ?>
+                                    </span></div>
+                                    <div class="mt-1"><span class="badge bg-<?= $deliveryBadgeClass; ?>" style="font-size:0.7rem;">
+                                        <?= ucfirst(str_replace('_', ' ', $deliveryStatus)); ?>
+                                    </span></div>
                                 </td>
                                 <td>
                                     <small><?= date('M d, Y', strtotime($order['created_at'])); ?></small>
                                 </td>
                                 <td>
-                                    <a href="/orders/<?= $order['id']; ?>" class="btn btn-sm btn-outline-primary" title="View">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <form method="POST" action="/orders/<?= $order['id']; ?>/delete" style="display:inline;" onsubmit="return confirm('Delete this order?');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -123,23 +128,29 @@
     </div>
 
     <!-- Pagination -->
-    <?php if ($totalPages > 1): ?>
+    <?php if ($totalPages > 1):
+        $filterQuery = '';
+        if ($status) $filterQuery .= '&status=' . urlencode($status);
+        if ($search) $filterQuery .= '&search=' . urlencode($search) . '&search_type=' . urlencode($searchType);
+        if ($startDate) $filterQuery .= '&start_date=' . urlencode($startDate);
+        if ($endDate) $filterQuery .= '&end_date=' . urlencode($endDate);
+    ?>
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
                 <?php if ($page > 1): ?>
-                    <li class="page-item"><a class="page-link" href="/orders">First</a></li>
-                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $page - 1; ?>">Previous</a></li>
+                    <li class="page-item"><a class="page-link" href="/orders?page=1<?= $filterQuery; ?>">First</a></li>
+                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $page - 1; ?><?= $filterQuery; ?>">Previous</a></li>
                 <?php endif; ?>
 
                 <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
                     <li class="page-item <?= $i === $page ? 'active' : ''; ?>">
-                        <a class="page-link" href="/orders?page=<?= $i; ?>"><?= $i; ?></a>
+                        <a class="page-link" href="/orders?page=<?= $i; ?><?= $filterQuery; ?>"><?= $i; ?></a>
                     </li>
                 <?php endfor; ?>
 
                 <?php if ($page < $totalPages): ?>
-                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $page + 1; ?>">Next</a></li>
-                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $totalPages; ?>">Last</a></li>
+                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $page + 1; ?><?= $filterQuery; ?>">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="/orders?page=<?= $totalPages; ?><?= $filterQuery; ?>">Last</a></li>
                 <?php endif; ?>
             </ul>
         </nav>

@@ -2,7 +2,7 @@
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
 <div class="py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-3 px-md-0">
         <div>
             <p class="text-muted small mb-0">Order Number</p>
             <h1 class="mb-0"><?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?></h1>
@@ -27,30 +27,32 @@
             <div class="card border-0 mb-4">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-6">
                             <p class="text-muted small mb-1">Status</p>
                             <?php
-                            $statusBadges = [
-                                'pending' => 'warning',
-                                'processing' => 'info',
-                                'shipped' => 'primary',
-                                'in_transit' => 'secondary',
-                                'delivered' => 'success',
-                                'returned' => 'danger',
-                                'incomplete' => 'warning',
-                                'cancelled' => 'danger'
+                            $deliveryBadges = [
+                                'pending'         => 'warning text-dark',
+                                'courier_pickup'  => 'warning text-dark',
+                                'personal_pickup' => 'warning text-dark',
+                                'in_transit'      => 'warning text-dark',
+                                'delivered'       => 'success',
+                                'on_hold'         => 'danger',
+                                'cancelled'       => 'danger',
+                                'returned'        => 'danger',
                             ];
-                            $badgeClass = $statusBadges[$order['status']] ?? 'secondary';
+                            $deliveryBadgeClass = $deliveryBadges[$order['delivery_status']] ?? 'warning text-dark';
+                            $paymentBadgeClass = $order['payment_status'] === 'paid' ? 'success' : 'danger';
                             ?>
-                            <span class="badge bg-<?= $badgeClass; ?> fs-6">
-                                <?= ucfirst(str_replace('_', ' ', $order['status'])); ?>
-                            </span>
+                            <div class="d-flex gap-1 flex-wrap">
+                                <span class="badge bg-<?= $paymentBadgeClass; ?>">
+                                    <?= ucfirst($order['payment_status']); ?>
+                                </span>
+                                <span class="badge bg-<?= $deliveryBadgeClass; ?>">
+                                    <?= ucfirst(str_replace('_', ' ', $order['delivery_status'])); ?>
+                                </span>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <p class="text-muted small mb-1">Order Date</p>
-                            <p class="mb-0"><?= date('M d, Y H:i', strtotime($order['created_at'])); ?></p>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-6 col-md-6">
                             <p class="text-muted small mb-1">Total Amount</p>
                             <h4 class="mb-0">৳<?= number_format($order['total_amount'], 2); ?></h4>
                         </div>
@@ -92,7 +94,15 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-4">
+                            <p class="text-muted small mb-1">Delivery Status</p>
+                            <p class="mb-3">
+                                <span class="badge bg-<?= $deliveryBadgeClass; ?>">
+                                    <?= ucfirst(str_replace('_', ' ', $order['delivery_status'])); ?>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-6 col-md-4">
                             <p class="text-muted small mb-1">Payment Method</p>
                             <p class="mb-3">
                                 <?php
@@ -101,19 +111,11 @@
                                 ?>
                             </p>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-4">
                             <p class="text-muted small mb-1">Payment Status</p>
                             <p class="mb-3">
-                                <span class="badge <?= $order['payment_status'] === 'paid' ? 'bg-success' : 'bg-warning text-dark'; ?>">
+                                <span class="badge bg-<?= $paymentBadgeClass; ?>">
                                     <?= ucfirst($order['payment_status']); ?>
-                                </span>
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Delivery Status</p>
-                            <p class="mb-3">
-                                <span class="badge bg-info">
-                                    <?= ucfirst(str_replace('_', ' ', $order['delivery_status'])); ?>
                                 </span>
                             </p>
                         </div>
@@ -137,7 +139,6 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Product</th>
-                                <th>SKU</th>
                                 <th>Size</th>
                                 <th class="text-center">Qty</th>
                                 <th class="text-end">Unit Price</th>
@@ -148,7 +149,6 @@
                             <?php foreach ($items as $item): ?>
                                 <tr>
                                     <td><?= htmlspecialchars($item['product_name']); ?></td>
-                                    <td><code><?= htmlspecialchars($item['sku']); ?></code></td>
                                     <td><?= htmlspecialchars($item['size']); ?></td>
                                     <td class="text-center"><?= $item['quantity']; ?></td>
                                     <td class="text-end">৳<?= number_format($item['unit_price'], 2); ?></td>
@@ -195,32 +195,6 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Status Update -->
-            <div class="card border-0 mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Update Status</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="/orders/<?= $order['id']; ?>/status">
-                        <div class="mb-3">
-                            <select name="status" class="form-select">
-                                <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : ''; ?>>Processing</option>
-                                <option value="shipped" <?= $order['status'] === 'shipped' ? 'selected' : ''; ?>>Shipped</option>
-                                <option value="in_transit" <?= $order['status'] === 'in_transit' ? 'selected' : ''; ?>>In Transit</option>
-                                <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                                <option value="returned" <?= $order['status'] === 'returned' ? 'selected' : ''; ?>>Returned</option>
-                                <option value="incomplete" <?= $order['status'] === 'incomplete' ? 'selected' : ''; ?>>Incomplete</option>
-                                <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-check"></i> Update Status
-                        </button>
-                    </form>
-                </div>
-            </div>
-
             <!-- Tracking Information -->
             <div class="card border-0 mb-4">
                 <div class="card-header bg-light">
@@ -265,8 +239,26 @@
                             <div class="timeline-item">
                                 <div class="timeline-marker bg-success"></div>
                                 <div class="timeline-content">
-                                    <p class="small text-muted mb-1">Order Delivered</p>
+                                    <p class="small text-muted mb-1">Product Delivered</p>
                                     <p class="small mb-0"><?= date('M d, Y H:i', strtotime($order['delivered_at'])); ?></p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($order['cancelled_at'])): ?>
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-danger"></div>
+                                <div class="timeline-content">
+                                    <p class="small text-muted mb-1">Order Cancelled</p>
+                                    <p class="small mb-0"><?= date('M d, Y H:i', strtotime($order['cancelled_at'])); ?></p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($order['returned_at'])): ?>
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-danger"></div>
+                                <div class="timeline-content">
+                                    <p class="small text-muted mb-1">Order Returned</p>
+                                    <p class="small mb-0"><?= date('M d, Y H:i', strtotime($order['returned_at'])); ?></p>
                                 </div>
                             </div>
                         <?php endif; ?>
