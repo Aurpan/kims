@@ -25,10 +25,37 @@
         </div>
     </div>
 
-    <?php if (($hasStockIssue ?? false) || ($order['has_stock_issue'] ?? false)): ?>
-    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert" id="stockIssueAlert">
+    <?php if ($flash ?? null): ?>
+    <div class="alert alert-<?= $flash['type'] === 'error' ? 'danger' : htmlspecialchars($flash['type']); ?> alert-dismissible fade show mb-4" role="alert">
+        <?= htmlspecialchars($flash['message']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
+    <?php
+        $undeductedItems = array_filter($items, fn($item) =>
+            !($item['is_return'] ?? 0) && !($item['stock_deducted'] ?? 1)
+        );
+        $adjustableItems = array_filter($undeductedItems, fn($item) =>
+            (int)($item['current_stock'] ?? 0) >= (int)$item['quantity']
+        );
+        $showStockWarning = count($undeductedItems) > 0;
+        $canAdjust = count($adjustableItems) > 0;
+    ?>
+    <?php if ($showStockWarning): ?>
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert" id="stockIssueAlert" data-permanent>
         <i class="fas fa-exclamation-triangle fa-lg flex-shrink-0"></i>
-        <div><strong>Stock Unavailable</strong> — One or more items in this order are out of stock. Delivery status is locked to <strong>Pending</strong> until stock is replenished.</div>
+        <div class="flex-grow-1">
+            <strong>Stock Unavailable</strong> — One or more items in this order are out of stock. Delivery status is locked to <strong>Pending</strong> until stock is replenished.
+        </div>
+        <?php if ($canAdjust): ?>
+        <form method="POST" action="/orders/<?= $order['id']; ?>/adjustStock" class="flex-shrink-0">
+            <button type="submit" class="btn btn-warning btn-sm"
+                    onclick="return confirm('Deduct available stock now for items that can be fulfilled?')">
+                <i class="fas fa-boxes"></i> Adjust Order
+            </button>
+        </form>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 
@@ -43,6 +70,7 @@
                             <?php
                             $deliveryBadges = [
                                 'pending'         => 'warning text-dark',
+                                'package_ready'   => 'info text-dark',
                                 'courier_pickup'  => 'warning text-dark',
                                 'personal_pickup' => 'warning text-dark',
                                 'in_transit'      => 'warning text-dark',

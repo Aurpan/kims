@@ -132,7 +132,7 @@ class OrderController extends Controller
         }
 
         // Validate delivery status
-        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
+        if (!in_array($deliveryStatus, ['pending', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
 
@@ -267,6 +267,7 @@ class OrderController extends Controller
             'order'         => $order,
             'items'         => $items,
             'hasStockIssue' => $hasStockIssue,
+            'flash'         => $this->getFlash(),
         ]);
     }
 
@@ -288,22 +289,34 @@ class OrderController extends Controller
             return;
         }
 
-        $variantModel = new ProductVariant();
-        $variants = $variantModel->getAllWithProduct();
+        $variantModel  = new ProductVariant();
+        $variants      = $variantModel->getAllWithProduct();
+        $itemModel     = new OrderItem();
+        $existingItems = $itemModel->getByOrder($id);
+
+        // For edit mode: add back quantities already deducted by this order so the
+        // stock display reflects what would actually be available after releasing this order.
+        $ownDeductedQty = [];
+        foreach ($existingItems as $item) {
+            if (!($item['is_return'] ?? 0) && ($item['stock_deducted'] ?? 0)) {
+                $vid = (int) $item['variant_id'];
+                $ownDeductedQty[$vid] = ($ownDeductedQty[$vid] ?? 0) + (int) $item['quantity'];
+            }
+        }
 
         $variantJson = [];
         foreach ($variants as $v) {
+            $vid         = (int) $v['id'];
+            $displayStock = (int) ($v['stock'] ?? 0) + ($ownDeductedQty[$vid] ?? 0);
             $variantJson[$v['product_id']][] = [
-                'id' => $v['id'],
-                'sku' => $v['sku'],
-                'size' => $v['size'],
+                'id'    => $vid,
+                'sku'   => $v['sku'],
+                'size'  => $v['size'],
                 'price' => $v['variant_price'] ?? $v['base_price'],
-                'stock' => (int) ($v['stock'] ?? 0)
+                'stock' => $displayStock,
             ];
         }
 
-        $itemModel     = new OrderItem();
-        $existingItems = $itemModel->getByOrder($id);
         $hasStockIssue = $this->computeStockIssue($existingItems, $variantModel, $orderModel, $id);
 
         $this->render('orders/form', [
@@ -379,7 +392,7 @@ class OrderController extends Controller
         if (!in_array($paymentStatus, ['unpaid', 'paid'])) {
             $errors['payment_status'] = 'Invalid payment status';
         }
-        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
+        if (!in_array($deliveryStatus, ['pending', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
         if ($deliveryStatus === 'personal_pickup' && (empty($pickupPersonName) || strlen(trim($pickupPersonName)) < 2)) {
@@ -605,7 +618,7 @@ class OrderController extends Controller
         if (!in_array($paymentStatus, ['unpaid', 'paid'])) {
             $errors['payment_status'] = 'Invalid payment status';
         }
-        if (!in_array($deliveryStatus, ['pending', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
+        if (!in_array($deliveryStatus, ['pending', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
         if ($deliveryStatus === 'personal_pickup' && (empty($pickupPersonName) || strlen(trim($pickupPersonName)) < 2)) {
@@ -716,21 +729,73 @@ class OrderController extends Controller
         }
     }
 
+    public function adjustStock(): void
+    {
+        Auth::requireLogin();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirectBack();
+        }
+
+        $id = (int) ($_GET['id'] ?? 0);
+        if ($id <= 0) $this->abort(404, 'Order not found');
+
+        $orderModel   = new Order();
+        $order        = $orderModel->find($id);
+        if (!$order) $this->abort(404, 'Order not found');
+
+        $itemModel    = new OrderItem();
+        $variantModel = new ProductVariant();
+        $items        = $itemModel->getByOrder($id);
+
+        $db = $orderModel->getConnection();
+        $db->beginTransaction();
+
+        try {
+            $hasIssue = false;
+            foreach ($items as $item) {
+                if (($item['is_return'] ?? 0) || ($item['stock_deducted'] ?? 1)) continue;
+
+                $currentStock = (int) ($item['current_stock'] ?? 0);
+                $qty          = (int) $item['quantity'];
+
+                if ($currentStock >= $qty) {
+                    $variantModel->updateStock((int) $item['variant_id'], -$qty);
+                    $db->prepare("UPDATE order_items SET stock_deducted = 1 WHERE id = ?")->execute([(int) $item['id']]);
+                } else {
+                    $hasIssue = true;
+                }
+            }
+
+            $orderModel->update($id, ['has_stock_issue' => (int) $hasIssue]);
+            $db->commit();
+
+            $msg = $hasIssue
+                ? 'Available stock adjusted. Some items still have insufficient stock.'
+                : 'Stock adjusted successfully! All items are now fulfilled.';
+            $this->setFlash($hasIssue ? 'warning' : 'success', $msg);
+
+        } catch (\Exception $e) {
+            $db->rollback();
+            $this->setFlash('error', 'Failed to adjust stock: ' . $e->getMessage());
+        }
+
+        $this->redirect("/orders/{$id}");
+    }
+
     private function computeStockIssue(array $items, ProductVariant $variantModel, Order $orderModel, int $orderId): bool
     {
+        // Any non-return item that hasn't had its stock deducted yet means there is an issue.
         $hasIssue = false;
         foreach ($items as $item) {
             if ($item['is_return'] ?? 0) continue;
-            if ($item['stock_deducted'] ?? 1) continue; // already deducted, no issue
-            $variant = $variantModel->find((int) $item['variant_id']);
-            if (!$variant || (int) $variant['stock'] < (int) $item['quantity']) {
-                $hasIssue = true;
-                break;
-            }
+            if ($item['stock_deducted'] ?? 1) continue;
+            $hasIssue = true;
+            break;
         }
-        // Lazily update the DB flag if it changed
-        if ((int) ($orderModel->find($orderId)['has_stock_issue'] ?? 0) !== (int) $hasIssue) {
-            $orderModel->update($orderId, ['has_stock_issue' => (int) $hasIssue]);
+        // Only ever set the flag TO 1 here — clearing it is the user's action via Adjust Stock.
+        if ($hasIssue && !(int) ($orderModel->find($orderId)['has_stock_issue'] ?? 0)) {
+            $orderModel->update($orderId, ['has_stock_issue' => 1]);
         }
         return $hasIssue;
     }

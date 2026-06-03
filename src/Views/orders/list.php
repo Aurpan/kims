@@ -72,6 +72,7 @@
                             elseif (in_array($deliveryStatus, ['on_hold', 'cancelled', 'returned'])) $rowClass = 'table-danger';
                             $deliveryBadges = [
                                 'pending'         => 'warning text-dark',
+                                'package_ready'   => 'info text-dark',
                                 'courier_pickup'  => 'warning text-dark',
                                 'personal_pickup' => 'warning text-dark',
                                 'in_transit'      => 'warning text-dark',
@@ -88,6 +89,9 @@
                                     <a href="/orders/<?= $order['id']; ?>" class="text-decoration-none fw-bold">
                                         <?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?>
                                     </a>
+                                    <?php if ($order['has_stock_issue']): ?>
+                                        <span class="badge bg-warning text-dark ms-1" title="Stock unavailable"><i class="fas fa-exclamation-triangle"></i></span>
+                                    <?php endif; ?>
                                 </td>
                                 <td><?= htmlspecialchars($order['customer_name']); ?></td>
                                 <td><small>৳<?= number_format($order['total_amount'], 2); ?></small></td>

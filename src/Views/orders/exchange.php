@@ -143,6 +143,7 @@ foreach ($uniqueProducts as $pid => $pname) {
                                     <label class="form-label">Delivery Status *</label>
                                     <select name="delivery_status" id="deliveryStatus" class="form-select" required>
                                         <option value="pending" selected>Pending</option>
+                                        <option value="package_ready">Package Ready</option>
                                         <option value="courier_pickup">Courier Pickup</option>
                                         <option value="personal_pickup">Personal Pickup</option>
                                         <option value="delivered">Delivered</option>

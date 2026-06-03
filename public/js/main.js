@@ -43,7 +43,7 @@ function initializePopovers() {
  * Close alerts after timeout
  */
 function initializeAlerts() {
-    const alerts = document.querySelectorAll('.alert');
+    const alerts = document.querySelectorAll('.alert:not([data-permanent])');
     alerts.forEach(alert => {
         setTimeout(() => {
             const bsAlert = new bootstrap.Alert(alert);

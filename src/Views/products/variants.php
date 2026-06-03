@@ -91,13 +91,30 @@
                                 </td>
                                 <td><?= htmlspecialchars($variant['size']); ?></td>
                                 <td style="white-space: nowrap;">
-                                    <strong><?= intval($variant['stock']); ?></strong>
-                                    <small class="text-muted"><?= intval($variant['stock']) <= intval($variant['reorder_point']) ? '(Alert!)' : ''; ?></small>
-                                    <button class="btn btn-link text-primary p-0 ms-1" data-bs-toggle="modal" data-bs-target="#stockModal"
-                                            onclick="setStockModal(<?= $variant['id']; ?>, '<?= htmlspecialchars($variant['sku']); ?>', <?= intval($variant['stock']); ?>)"
-                                            title="Edit Stock">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                    <span class="stock-display-<?= $variant['id']; ?>">
+                                        <strong><?= intval($variant['stock']); ?></strong>
+                                        <button class="btn btn-link text-primary p-0 ms-1"
+                                                onclick="showStockInput(<?= $variant['id']; ?>)"
+                                                title="Add Stock">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </span>
+                                    <span class="stock-inline-<?= $variant['id']; ?> d-none" style="display:inline-flex;align-items:center;gap:4px;">
+                                        <form method="POST" action="/products/variants/<?= $variant['id']; ?>/updateStock"
+                                              style="display:inline-flex;align-items:center;gap:4px;">
+                                            <input type="number" name="stock" min="0" required
+                                                   class="form-control form-control-sm"
+                                                   style="width:70px;"
+                                                   placeholder="qty">
+                                            <button type="submit" class="btn btn-sm btn-success p-1 lh-1" title="Save">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-secondary p-1 lh-1" title="Cancel"
+                                                onclick="hideStockInput(<?= $variant['id']; ?>)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </span>
                                 </td>
                                 <td>
                                     ৳<?= number_format($variant['variant_price'] ?: $product['base_price'], 0); ?>
@@ -241,36 +258,16 @@
     </div>
 </div>
 
-<!-- Stock Update Modal -->
-<div class="modal fade" id="stockModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Update Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="/products/variants/updateStock" id="stockForm">
-                <div class="modal-body">
-                    <p class="text-muted" id="skuDisplay"></p>
-                    <div class="mb-3">
-                        <label for="newStock" class="form-label">Stock Quantity</label>
-                        <input type="number" class="form-control" id="newStock" name="stock" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Stock</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script>
-function setStockModal(variantId, sku, currentStock) {
-    document.getElementById('skuDisplay').textContent = 'SKU: ' + sku;
-    document.getElementById('newStock').value = currentStock;
-    document.getElementById('stockForm').action = `/products/variants/${variantId}/updateStock`;
+function showStockInput(variantId) {
+    document.querySelector('.stock-display-' + variantId).classList.add('d-none');
+    document.querySelector('.stock-inline-' + variantId).classList.remove('d-none');
+    document.querySelector('.stock-inline-' + variantId + ' input[name="stock"]').focus();
+}
+
+function hideStockInput(variantId) {
+    document.querySelector('.stock-display-' + variantId).classList.remove('d-none');
+    document.querySelector('.stock-inline-' + variantId).classList.add('d-none');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

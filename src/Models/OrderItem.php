@@ -29,6 +29,18 @@ class OrderItem extends Model
         return (int) ($result['total'] ?? 0);
     }
 
+    public function getAffectedPendingOrderIds(int $variantId): array
+    {
+        $sql = "SELECT DISTINCT oi.order_id FROM {$this->table} oi
+                JOIN orders o ON oi.order_id = o.id
+                WHERE oi.variant_id = ?
+                  AND oi.stock_deducted = 0
+                  AND oi.is_return = 0
+                  AND o.is_deleted = 0
+                  AND o.delivery_status NOT IN ('cancelled', 'returned', 'delivered')";
+        return array_column($this->db->fetchAll($sql, [$variantId]), 'order_id');
+    }
+
     public function getStockShortages(): array
     {
         $sql = "SELECT
