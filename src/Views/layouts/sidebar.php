@@ -30,7 +30,7 @@
                 <span class="nav-link text-muted small"><strong>Orders</strong></span>
             </li>
             <li class="nav-item">
-                <a class="nav-link ps-4" href="/orders">
+                <a class="nav-link ps-4" href="/orders?delivery_status=pending">
                     <i class="fas fa-shopping-cart"></i> Orders
                 </a>
             </li>
@@ -46,14 +46,14 @@
                 <span class="nav-link text-muted small"><strong>Finances</strong></span>
             </li>
             <li class="nav-item">
-                <a class="nav-link ps-4" href="/expenses">
+                <span class="nav-link ps-4 text-muted disabled" style="cursor:not-allowed;opacity:0.5;">
                     <i class="fas fa-credit-card"></i> Expenses
-                </a>
+                </span>
             </li>
             <li class="nav-item">
-                <a class="nav-link ps-4" href="/expenses/create">
+                <span class="nav-link ps-4 text-muted disabled" style="cursor:not-allowed;opacity:0.5;">
                     <i class="fas fa-plus"></i> Log Expense
-                </a>
+                </span>
             </li>
 
             <hr class="my-2">

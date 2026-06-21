@@ -24,14 +24,18 @@
             <form method="GET" action="/orders" class="row g-3" id="ordersFilterForm">
                 <input type="hidden" name="search_type" value="order_number">
                 <div class="col-md-2">
-                    <select name="status" class="form-select" onchange="document.getElementById('ordersFilterForm').submit();">
+                    <select name="delivery_status" class="form-select" onchange="document.getElementById('ordersFilterForm').submit();">
                         <option value="">All Status</option>
-                        <option value="pending" <?= $status === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                        <option value="processing" <?= $status === 'processing' ? 'selected' : ''; ?>>Processing</option>
-                        <option value="shipped" <?= $status === 'shipped' ? 'selected' : ''; ?>>Shipped</option>
-                        <option value="in_transit" <?= $status === 'in_transit' ? 'selected' : ''; ?>>In Transit</option>
-                        <option value="delivered" <?= $status === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                        <option value="returned" <?= $status === 'returned' ? 'selected' : ''; ?>>Returned</option>
+                        <option value="pending" <?= $deliveryStatus === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option value="waiting_for_print" <?= $deliveryStatus === 'waiting_for_print' ? 'selected' : ''; ?>>Waiting For Print</option>
+                        <option value="package_ready" <?= $deliveryStatus === 'package_ready' ? 'selected' : ''; ?>>Package Ready</option>
+                        <option value="courier_pickup" <?= $deliveryStatus === 'courier_pickup' ? 'selected' : ''; ?>>Courier Pickup</option>
+                        <option value="personal_pickup" <?= $deliveryStatus === 'personal_pickup' ? 'selected' : ''; ?>>Personal Pickup</option>
+                        <option value="in_transit" <?= $deliveryStatus === 'in_transit' ? 'selected' : ''; ?>>In Transit</option>
+                        <option value="delivered" <?= $deliveryStatus === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
+                        <option value="on_hold" <?= $deliveryStatus === 'on_hold' ? 'selected' : ''; ?>>On Hold</option>
+                        <option value="cancelled" <?= $deliveryStatus === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                        <option value="returned" <?= $deliveryStatus === 'returned' ? 'selected' : ''; ?>>Returned</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -66,13 +70,13 @@
                         <?php foreach ($orders as $order): ?>
                             <?php
                             $deliveryStatus = $order['delivery_status'] ?? '';
-                            $orderStatus   = $order['status'] ?? '';
                             $rowClass = '';
                             if ($deliveryStatus === 'delivered') $rowClass = 'table-success';
                             elseif (in_array($deliveryStatus, ['on_hold', 'cancelled', 'returned'])) $rowClass = 'table-danger';
                             $deliveryBadges = [
-                                'pending'         => 'warning text-dark',
-                                'package_ready'   => 'info text-dark',
+                                'pending'           => 'warning text-dark',
+                                'waiting_for_print' => 'primary',
+                                'package_ready'     => 'info text-dark',
                                 'courier_pickup'  => 'warning text-dark',
                                 'personal_pickup' => 'warning text-dark',
                                 'in_transit'      => 'warning text-dark',
@@ -81,17 +85,8 @@
                                 'cancelled'       => 'danger',
                                 'returned'        => 'danger',
                             ];
-                            $orderStatusBadges = [
-                                'pending'    => 'secondary',
-                                'processing' => 'primary',
-                                'shipped'    => 'info text-dark',
-                                'in_transit' => 'warning text-dark',
-                                'delivered'  => 'success',
-                                'returned'   => 'danger',
-                            ];
-                            $deliveryBadgeClass   = $deliveryBadges[$deliveryStatus] ?? 'warning text-dark';
-                            $orderStatusBadgeClass = $orderStatusBadges[$orderStatus] ?? 'secondary';
-                            $paymentBadgeClass     = $order['payment_status'] === 'paid' ? 'success' : 'danger';
+                            $deliveryBadgeClass = $deliveryBadges[$deliveryStatus] ?? 'warning text-dark';
+                            $paymentBadgeClass  = $order['payment_status'] === 'paid' ? 'success' : 'danger';
                             ?>
                             <tr class="<?= $rowClass; ?>">
                                 <td>
@@ -105,10 +100,7 @@
                                 <td><?= htmlspecialchars($order['customer_name']); ?></td>
                                 <td><small>৳<?= number_format($order['total_amount'], 2); ?></small></td>
                                 <td>
-                                    <div><span class="badge bg-<?= $orderStatusBadgeClass; ?>" style="font-size:0.7rem;">
-                                        <?= ucfirst(str_replace('_', ' ', $orderStatus)); ?>
-                                    </span></div>
-                                    <div class="mt-1"><span class="badge bg-<?= $paymentBadgeClass; ?>" style="font-size:0.7rem;">
+                                    <div><span class="badge bg-<?= $paymentBadgeClass; ?>" style="font-size:0.7rem;">
                                         <?= ucfirst($order['payment_status']); ?>
                                     </span></div>
                                     <div class="mt-1"><span class="badge bg-<?= $deliveryBadgeClass; ?>" style="font-size:0.7rem;">
@@ -148,7 +140,7 @@
     <!-- Pagination -->
     <?php if ($totalPages > 1):
         $filterQuery = '';
-        if ($status) $filterQuery .= '&status=' . urlencode($status);
+        if ($deliveryStatus) $filterQuery .= '&delivery_status=' . urlencode($deliveryStatus);
         if ($search) $filterQuery .= '&search=' . urlencode($search) . '&search_type=' . urlencode($searchType);
         if ($startDate) $filterQuery .= '&start_date=' . urlencode($startDate);
         if ($endDate) $filterQuery .= '&end_date=' . urlencode($endDate);

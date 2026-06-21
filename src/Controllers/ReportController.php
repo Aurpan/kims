@@ -201,7 +201,7 @@ class ReportController extends Controller
                 $order['customer_phone'],
                 $order['delivery_address'],
                 $order['total_amount'],
-                $order['status'],
+                $order['delivery_status'],
                 $order['created_at']
             ]);
         }

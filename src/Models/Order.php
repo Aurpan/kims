@@ -26,10 +26,10 @@ class Order extends Model
     {
         $offset = ($page - 1) * $perPage;
 
-        $countSql = "SELECT COUNT(*) as total FROM {$this->table} WHERE status = ? AND is_deleted = 0";
+        $countSql = "SELECT COUNT(*) as total FROM {$this->table} WHERE delivery_status = ? AND is_deleted = 0";
         $total = $this->db->fetch($countSql, [$status])['total'];
 
-        $sql = "SELECT * FROM {$this->table} WHERE status = ? AND is_deleted = 0 ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT * FROM {$this->table} WHERE delivery_status = ? AND is_deleted = 0 ORDER BY created_at DESC LIMIT ? OFFSET ?";
         $items = $this->db->fetchAll($sql, [$status, $perPage, $offset]);
 
         return [
@@ -52,9 +52,9 @@ class Order extends Model
         $query = "SELECT * FROM {$this->table} WHERE is_deleted = 0";
         $params = [];
 
-        if (!empty($filters['status'])) {
-            $query .= " AND status = ?";
-            $params[] = $filters['status'];
+        if (!empty($filters['delivery_status'])) {
+            $query .= " AND delivery_status = ?";
+            $params[] = $filters['delivery_status'];
         }
 
         if (!empty($filters['customer_name'])) {
@@ -96,12 +96,14 @@ class Order extends Model
 
     public function updateStatus(int $orderId, string $status): int
     {
-        $updateData = ['status' => $status];
+        $updateData = ['delivery_status' => $status];
 
-        if ($status === 'shipped') {
-            $updateData['shipped_at'] = date('Y-m-d H:i:s');
-        } elseif ($status === 'delivered') {
+        if ($status === 'delivered') {
             $updateData['delivered_at'] = date('Y-m-d H:i:s');
+        } elseif ($status === 'cancelled') {
+            $updateData['cancelled_at'] = date('Y-m-d H:i:s');
+        } elseif ($status === 'returned') {
+            $updateData['returned_at'] = date('Y-m-d H:i:s');
         }
 
         return $this->db->update(
@@ -132,13 +134,13 @@ class Order extends Model
 
     public function getStatusDistribution(): array
     {
-        $sql = "SELECT status, COUNT(*) as count FROM {$this->table} WHERE is_deleted = 0 GROUP BY status";
+        $sql = "SELECT delivery_status as status, COUNT(*) as count FROM {$this->table} WHERE is_deleted = 0 GROUP BY delivery_status";
         return $this->db->fetchAll($sql);
     }
 
     public function getTotalRevenue(string $startDate = null, string $endDate = null): float
     {
-        $sql = "SELECT SUM(total_amount) as total FROM {$this->table} WHERE is_deleted = 0 AND status != 'returned'";
+        $sql = "SELECT SUM(total_amount) as total FROM {$this->table} WHERE is_deleted = 0 AND delivery_status NOT IN ('returned', 'cancelled')";
         $params = [];
 
         if ($startDate && $endDate) {
@@ -165,7 +167,7 @@ class Order extends Model
 
     public function getRecentOrders(int $limit = 10): array
     {
-        $sql = "SELECT id, order_number, customer_name, total_amount, status, created_at FROM {$this->table} WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT ?";
+        $sql = "SELECT id, order_number, customer_name, total_amount, delivery_status, created_at FROM {$this->table} WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT ?";
         return $this->db->fetchAll($sql, [$limit]);
     }
 }

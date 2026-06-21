@@ -125,18 +125,19 @@ foreach ($uniqueProducts as $pid => $pname) {
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Delivery Status *
+                                    <label class="form-label">Status *
                                         <?php if ($hasStockIssue ?? false): ?>
                                             <span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-triangle"></i> Stock Unavailable</span>
                                         <?php endif; ?>
                                     </label>
                                     <div id="stock-issue-warning" class="alert alert-warning py-1 px-2 mb-2 small" style="display:none;">
-                                        <i class="fas fa-exclamation-triangle"></i> Stock unavailable — delivery status locked to Pending.
+                                        <i class="fas fa-exclamation-triangle"></i> Stock unavailable — status locked to Pending.
                                     </div>
                                     <select name="delivery_status" id="deliveryStatus" class="form-select" required
                                             data-server-locked="<?= ($hasStockIssue ?? false) ? '1' : '0'; ?>"
                                             <?= ($hasStockIssue ?? false) ? 'disabled' : ''; ?>>
                                         <option value="pending" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? 'pending') === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                        <option value="waiting_for_print" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'waiting_for_print' ? 'selected' : ''; ?>>Waiting For Print</option>
                                         <option value="package_ready" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'package_ready' ? 'selected' : ''; ?>>Package Ready</option>
                                         <option value="courier_pickup" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'courier_pickup' ? 'selected' : ''; ?>>Courier Pickup</option>
                                         <option value="personal_pickup" <?= ($order['delivery_status'] ?? $old['delivery_status'] ?? '') === 'personal_pickup' ? 'selected' : ''; ?>>Personal Pickup</option>

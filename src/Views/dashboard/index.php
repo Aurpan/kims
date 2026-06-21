@@ -39,7 +39,7 @@
         </div>
 
         <div class="col-md-3">
-            <a href="/orders?status=pending" class="text-decoration-none">
+            <a href="/orders?delivery_status=pending" class="text-decoration-none">
                 <div class="card border-0 bg-light card-hover">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
@@ -185,14 +185,18 @@
                                 <?php foreach ($recentOrders as $order): ?>
                                     <?php
                                     $statusBadges = [
-                                        'pending' => 'warning',
-                                        'processing' => 'info',
-                                        'shipped' => 'primary',
-                                        'in_transit' => 'secondary',
-                                        'delivered' => 'success',
-                                        'returned' => 'danger'
+                                        'pending'           => 'warning',
+                                        'waiting_for_print' => 'primary',
+                                        'package_ready'     => 'info',
+                                        'courier_pickup'  => 'warning',
+                                        'personal_pickup' => 'warning',
+                                        'in_transit'      => 'secondary',
+                                        'delivered'       => 'success',
+                                        'on_hold'         => 'danger',
+                                        'cancelled'       => 'danger',
+                                        'returned'        => 'danger',
                                     ];
-                                    $badgeClass = $statusBadges[$order['status']] ?? 'secondary';
+                                    $badgeClass = $statusBadges[$order['delivery_status']] ?? 'secondary';
                                     ?>
                                     <tr>
                                         <td>
@@ -204,7 +208,7 @@
                                         <td class="fw-bold">$<?= number_format($order['total_amount'], 2); ?></td>
                                         <td>
                                             <span class="badge bg-<?= $badgeClass; ?>">
-                                                <?= ucfirst(str_replace('_', ' ', $order['status'])); ?>
+                                                <?= ucfirst(str_replace('_', ' ', $order['delivery_status'])); ?>
                                             </span>
                                         </td>
                                         <td><small><?= date('M d, Y', strtotime($order['created_at'])); ?></small></td>

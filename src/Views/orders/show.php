@@ -69,8 +69,9 @@
                             <p class="text-muted small mb-1">Status</p>
                             <?php
                             $deliveryBadges = [
-                                'pending'         => 'warning text-dark',
-                                'package_ready'   => 'info text-dark',
+                                'pending'           => 'warning text-dark',
+                                'waiting_for_print' => 'primary',
+                                'package_ready'     => 'info text-dark',
                                 'courier_pickup'  => 'warning text-dark',
                                 'personal_pickup' => 'warning text-dark',
                                 'in_transit'      => 'warning text-dark',
@@ -134,7 +135,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-6 col-md-4">
-                            <p class="text-muted small mb-1">Delivery Status</p>
+                            <p class="text-muted small mb-1">Status</p>
                             <p class="mb-3">
                                 <span class="badge bg-<?= $deliveryBadgeClass; ?>">
                                     <?= ucfirst(str_replace('_', ' ', $order['delivery_status'])); ?>

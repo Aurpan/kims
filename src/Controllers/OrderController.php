@@ -13,7 +13,7 @@ class OrderController extends Controller
     {
         Auth::requireLogin();
 
-        $status = $_GET['status'] ?? '';
+        $deliveryStatus = $_GET['delivery_status'] ?? '';
         $search = $_GET['search'] ?? '';
         $searchType = $_GET['search_type'] ?? 'order_number';
         $page = (int) ($_GET['page'] ?? 1);
@@ -23,8 +23,8 @@ class OrderController extends Controller
         $orderModel = new Order();
         $filters = [];
 
-        if ($status) {
-            $filters['status'] = $status;
+        if ($deliveryStatus) {
+            $filters['delivery_status'] = $deliveryStatus;
         }
         if ($search) {
             $filters[$searchType] = $search;
@@ -43,7 +43,7 @@ class OrderController extends Controller
             'total' => $result['total'],
             'page' => $result['page'],
             'totalPages' => $result['totalPages'],
-            'status' => $status,
+            'deliveryStatus' => $deliveryStatus,
             'search' => $search,
             'searchType' => $searchType,
             'startDate' => $startDate,
@@ -132,7 +132,7 @@ class OrderController extends Controller
         }
 
         // Validate delivery status
-        if (!in_array($deliveryStatus, ['pending', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
+        if (!in_array($deliveryStatus, ['pending', 'waiting_for_print', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
 
@@ -173,7 +173,6 @@ class OrderController extends Controller
                 'customer_phone' => $customerPhone,
                 'delivery_address' => $deliveryAddress,
                 'notes' => $notes,
-                'status' => 'pending',
                 'total_amount' => 0,
                 'payment_method' => $paymentMethod,
                 'payment_status' => $paymentStatus,
@@ -392,7 +391,7 @@ class OrderController extends Controller
         if (!in_array($paymentStatus, ['unpaid', 'paid'])) {
             $errors['payment_status'] = 'Invalid payment status';
         }
-        if (!in_array($deliveryStatus, ['pending', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
+        if (!in_array($deliveryStatus, ['pending', 'waiting_for_print', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
         if ($deliveryStatus === 'personal_pickup' && (empty($pickupPersonName) || strlen(trim($pickupPersonName)) < 2)) {
@@ -618,7 +617,7 @@ class OrderController extends Controller
         if (!in_array($paymentStatus, ['unpaid', 'paid'])) {
             $errors['payment_status'] = 'Invalid payment status';
         }
-        if (!in_array($deliveryStatus, ['pending', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
+        if (!in_array($deliveryStatus, ['pending', 'waiting_for_print', 'package_ready', 'courier_pickup', 'personal_pickup', 'delivered', 'on_hold', 'cancelled', 'returned'])) {
             $errors['delivery_status'] = 'Invalid delivery status';
         }
         if ($deliveryStatus === 'personal_pickup' && (empty($pickupPersonName) || strlen(trim($pickupPersonName)) < 2)) {
@@ -655,7 +654,6 @@ class OrderController extends Controller
                 'customer_phone'        => $customerPhone,
                 'delivery_address'      => $deliveryAddress,
                 'notes'                 => $notes,
-                'status'                => 'pending',
                 'total_amount'          => 0,
                 'payment_method'        => $paymentMethod,
                 'payment_status'        => $paymentStatus,
@@ -809,7 +807,7 @@ class OrderController extends Controller
         }
 
         $id = (int) ($_GET['id'] ?? 0);
-        $status = $_POST['status'] ?? '';
+        $status = $_POST['delivery_status'] ?? '';
 
         if ($id <= 0) {
             $this->abort(404, 'Order not found');
@@ -820,7 +818,7 @@ class OrderController extends Controller
             $this->abort(404, 'Order not found');
         }
 
-        $validStatuses = ['pending', 'processing', 'shipped', 'in_transit', 'delivered', 'returned', 'incomplete', 'cancelled'];
+        $validStatuses = ['pending', 'waiting_for_print', 'package_ready', 'courier_pickup', 'personal_pickup', 'in_transit', 'delivered', 'on_hold', 'cancelled', 'returned'];
         if (!in_array($status, $validStatuses)) {
             $this->setFlash('error', 'Invalid status');
             $this->redirectBack();
