@@ -31,8 +31,7 @@
                         <option value="shipped" <?= $status === 'shipped' ? 'selected' : ''; ?>>Shipped</option>
                         <option value="in_transit" <?= $status === 'in_transit' ? 'selected' : ''; ?>>In Transit</option>
                         <option value="delivered" <?= $status === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                        <option value="incomplete" <?= $status === 'incomplete' ? 'selected' : ''; ?>>Incomplete</option>
-                        <option value="cancelled" <?= $status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                        <option value="returned" <?= $status === 'returned' ? 'selected' : ''; ?>>Returned</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -67,6 +66,7 @@
                         <?php foreach ($orders as $order): ?>
                             <?php
                             $deliveryStatus = $order['delivery_status'] ?? '';
+                            $orderStatus   = $order['status'] ?? '';
                             $rowClass = '';
                             if ($deliveryStatus === 'delivered') $rowClass = 'table-success';
                             elseif (in_array($deliveryStatus, ['on_hold', 'cancelled', 'returned'])) $rowClass = 'table-danger';
@@ -81,8 +81,17 @@
                                 'cancelled'       => 'danger',
                                 'returned'        => 'danger',
                             ];
-                            $deliveryBadgeClass = $deliveryBadges[$deliveryStatus] ?? 'warning text-dark';
-                            $paymentBadgeClass = $order['payment_status'] === 'paid' ? 'success' : 'danger';
+                            $orderStatusBadges = [
+                                'pending'    => 'secondary',
+                                'processing' => 'primary',
+                                'shipped'    => 'info text-dark',
+                                'in_transit' => 'warning text-dark',
+                                'delivered'  => 'success',
+                                'returned'   => 'danger',
+                            ];
+                            $deliveryBadgeClass   = $deliveryBadges[$deliveryStatus] ?? 'warning text-dark';
+                            $orderStatusBadgeClass = $orderStatusBadges[$orderStatus] ?? 'secondary';
+                            $paymentBadgeClass     = $order['payment_status'] === 'paid' ? 'success' : 'danger';
                             ?>
                             <tr class="<?= $rowClass; ?>">
                                 <td>
@@ -96,7 +105,10 @@
                                 <td><?= htmlspecialchars($order['customer_name']); ?></td>
                                 <td><small>৳<?= number_format($order['total_amount'], 2); ?></small></td>
                                 <td>
-                                    <div><span class="badge bg-<?= $paymentBadgeClass; ?>" style="font-size:0.7rem;">
+                                    <div><span class="badge bg-<?= $orderStatusBadgeClass; ?>" style="font-size:0.7rem;">
+                                        <?= ucfirst(str_replace('_', ' ', $orderStatus)); ?>
+                                    </span></div>
+                                    <div class="mt-1"><span class="badge bg-<?= $paymentBadgeClass; ?>" style="font-size:0.7rem;">
                                         <?= ucfirst($order['payment_status']); ?>
                                     </span></div>
                                     <div class="mt-1"><span class="badge bg-<?= $deliveryBadgeClass; ?>" style="font-size:0.7rem;">

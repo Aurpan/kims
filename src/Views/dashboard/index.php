@@ -55,7 +55,7 @@
         </div>
 
         <div class="col-md-3">
-            <a href="/reports/stock-shortage" class="text-decoration-none">
+            <a href="/reports/inventory" class="text-decoration-none">
                 <div class="card border-0 bg-light card-hover">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
