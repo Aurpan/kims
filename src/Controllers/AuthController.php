@@ -54,22 +54,29 @@ class AuthController extends Controller
             $this->redirect('/auth/register');
         }
 
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $name = $_POST['name'] ?? '';
+        if (!Auth::validateCSRFToken($_POST['csrf_token'] ?? '')) {
+            $this->setFlash('error', 'Invalid request. Please try again.');
+            $this->redirect('/auth/register');
+            return;
+        }
 
-        $errors = $this->validate([
-            'email' => $email,
-            'password' => $password,
-            'name' => $name
-        ], [
-            'email' => 'required|email',
-            'password' => 'required|min:6',
-            'name' => 'required|min:2'
-        ]);
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $passwordConfirm = $_POST['password_confirm'] ?? '';
+
+        $errors = $this->validate(
+            ['name' => $name, 'email' => $email, 'password' => $password],
+            ['name' => 'required|min:2', 'email' => 'required|email', 'password' => 'required|min:6']
+        );
+
+        if ($password !== $passwordConfirm) {
+            $errors['password_confirm'] = 'Passwords do not match';
+        }
 
         if (!empty($errors)) {
-            $_SESSION['errors'] = $errors;
+            $_SESSION['errors'] = array_values($errors);
+            $_SESSION['old'] = ['name' => $name, 'email' => $email];
             $this->redirect('/auth/register');
             return;
         }
@@ -77,7 +84,8 @@ class AuthController extends Controller
         $userModel = new User();
 
         if ($userModel->findByEmail($email)) {
-            $this->setFlash('error', 'Email already exists');
+            $this->setFlash('error', 'An account with that email already exists.');
+            $_SESSION['old'] = ['name' => $name, 'email' => $email];
             $this->redirect('/auth/register');
             return;
         }
@@ -88,7 +96,7 @@ class AuthController extends Controller
             'name' => $name
         ]);
 
-        $this->setFlash('success', 'Registration successful! Please log in.');
+        $this->setFlash('success', 'Account created! You can now log in.');
         $this->redirect('/auth/login');
     }
 
