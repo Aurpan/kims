@@ -33,19 +33,6 @@ class DashboardController extends Controller
         $expenseBreakdown = $expenseModel->getMonthlyBreakdown();
         $topVariants = $variantModel->getTopSellingVariants(5);
 
-        $dailyRevenue = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = date('Y-m-d', strtotime("-$i days"));
-            $revenue = $orderModel->getDailyRevenue($date);
-            $dailyRevenue[] = [
-                'date' => $date,
-                'revenue' => $revenue
-            ];
-        }
-
-        $dates = array_map(fn($d) => $d['date'], $dailyRevenue);
-        $revenues = array_map(fn($d) => $d['revenue'], $dailyRevenue);
-
         $statusLabels = [];
         $statusCounts = [];
         foreach ($statusDistribution as $sd) {
@@ -72,8 +59,6 @@ class DashboardController extends Controller
             'topVariants' => $topVariants,
             'monthlyExpenses' => $monthlyExpenses,
             'expenseBreakdown' => $expenseBreakdown,
-            'dateLabels' => json_encode($dates),
-            'revenueData' => json_encode($revenues),
             'statusLabels' => json_encode($statusLabels),
             'statusCounts' => json_encode($statusCounts),
             'categoryLabels' => json_encode($categoryLabels),

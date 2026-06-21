@@ -39,79 +39,76 @@
         </div>
 
         <div class="col-md-3">
-            <div class="card border-0 bg-light">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1">Pending Orders</p>
-                            <h3 class="mb-0"><?= $pendingOrders; ?></h3>
+            <a href="/orders?status=pending" class="text-decoration-none">
+                <div class="card border-0 bg-light card-hover">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">Pending Orders</p>
+                                <h3 class="mb-0"><?= $pendingOrders; ?></h3>
+                            </div>
+                            <i class="fas fa-shopping-cart fa-2x text-warning opacity-50"></i>
                         </div>
-                        <i class="fas fa-shopping-cart fa-2x text-warning opacity-50"></i>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-md-3">
-            <div class="card border-0 bg-light">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1">Low Stock Items</p>
-                            <h3 class="mb-0 <?= $lowStockCount > 0 ? 'text-danger' : ''; ?>"><?= $lowStockCount; ?></h3>
+            <a href="/reports/stock-shortage" class="text-decoration-none">
+                <div class="card border-0 bg-light card-hover">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">Low Stock Items</p>
+                                <h3 class="mb-0 <?= $lowStockCount > 0 ? 'text-danger' : ''; ?>"><?= $lowStockCount; ?></h3>
+                            </div>
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger opacity-50"></i>
                         </div>
-                        <i class="fas fa-exclamation-triangle fa-2x text-danger opacity-50"></i>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Monthly Summary Card -->
+    <!-- Monthly Summary Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card border-0 bg-light">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1">Monthly Expenses</p>
-                            <h3 class="mb-0">$<?= number_format($monthlyExpenses, 2); ?></h3>
+            <a href="/expenses" class="text-decoration-none">
+                <div class="card border-0 bg-light card-hover">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">Monthly Expenses</p>
+                                <h3 class="mb-0">$<?= number_format($monthlyExpenses, 2); ?></h3>
+                            </div>
+                            <i class="fas fa-money-bill fa-2x text-secondary opacity-50"></i>
                         </div>
-                        <i class="fas fa-money-bill fa-2x text-secondary opacity-50"></i>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-md-3">
-            <div class="card border-0 bg-light">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1">Total Products</p>
-                            <h3 class="mb-0"><?= $totalProducts; ?></h3>
+            <a href="/products" class="text-decoration-none">
+                <div class="card border-0 bg-light card-hover">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">Total Products</p>
+                                <h3 class="mb-0"><?= $totalProducts; ?></h3>
+                            </div>
+                            <i class="fas fa-box fa-2x text-success opacity-50"></i>
                         </div>
-                        <i class="fas fa-box fa-2x text-success opacity-50"></i>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
     <!-- Charts Row -->
     <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card border-0">
-                <div class="card-header bg-light border-0">
-                    <h5 class="mb-0">Revenue Trend (Last 30 Days)</h5>
-                </div>
-                <div class="card-body" style="position: relative; height: 300px;">
-                    <canvas id="revenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="card border-0">
                 <div class="card-header bg-light border-0">
                     <h5 class="mb-0">Order Status</h5>
@@ -254,47 +251,13 @@
     </div>
 </div>
 
+<style>
+.card-hover { transition: box-shadow 0.15s ease, transform 0.15s ease; cursor: pointer; }
+.card-hover:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
-const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-const revenueChart = new Chart(revenueCtx, {
-    type: 'line',
-    data: {
-        labels: <?= $dateLabels; ?>,
-        datasets: [{
-            label: 'Daily Revenue',
-            data: <?= $revenueData; ?>,
-            borderColor: '#0d6efd',
-            backgroundColor: 'rgba(13, 110, 253, 0.1)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 5
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return '৳' + value.toFixed(2);
-                    }
-                }
-            }
-        }
-    }
-});
-
 const statusCtx = document.getElementById('statusChart').getContext('2d');
 const statusChart = new Chart(statusCtx, {
     type: 'doughnut',
