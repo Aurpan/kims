@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Jersey Store Inventory</title>
+    <title>Register - Kitzoholic Inventory</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -76,7 +76,7 @@
 <body>
     <div class="register-container">
         <div class="register-header">
-            <h2><i class="fas fa-warehouse"></i> Jersey Store</h2>
+            <h2><i class="fas fa-warehouse"></i> Kitzoholic</h2>
             <p>Create your account</p>
         </div>
 

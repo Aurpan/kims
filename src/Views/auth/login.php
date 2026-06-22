@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Jersey Store Inventory</title>
+    <title>Login - Kitzoholic Inventory</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -80,7 +80,7 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h2><i class="fas fa-warehouse"></i> Jersey Store</h2>
+            <h2><i class="fas fa-warehouse"></i> Kitzoholic</h2>
             <p>Inventory Management System</p>
         </div>
 
@@ -107,7 +107,7 @@
         <form method="POST" action="/auth/login">
             <div class="mb-3">
                 <label for="email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="email" name="email" placeholder="admin@jerseystore.com" required>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
             </div>
 
             <div class="mb-3">
@@ -130,12 +130,6 @@
             <p><a href="/auth/forgot-password">Forgot password?</a></p>
         </div>
 
-        <hr>
-        <div class="mt-3 p-3 bg-light rounded">
-            <small class="text-muted d-block mb-2"><strong>Demo Credentials:</strong></small>
-            <small class="text-muted d-block">Email: admin@jerseystore.com</small>
-            <small class="text-muted d-block">Password: admin123</small>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

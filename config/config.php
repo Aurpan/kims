@@ -1,7 +1,7 @@
 <?php
 // Application Configuration
 
-define('APP_NAME', 'Jersey Store Inventory Management');
+define('APP_NAME', 'Kitzoholic Inventory Management');
 define('APP_VERSION', '1.0.0');
 define('APP_DEBUG', true); // Set to false in production
 define('APP_URL', 'http://localhost:8000');
