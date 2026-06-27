@@ -106,9 +106,9 @@
         </div>
     </div>
 
-    <!-- Recent Orders and Top Products -->
-    <div class="row">
-        <div class="col-lg-8">
+    <!-- Recent Orders -->
+    <div class="row mb-4">
+        <div class="col-12">
             <div class="card border-0">
                 <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Recent Orders</h5>
@@ -169,31 +169,69 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-4">
+    <!-- Items Ready for Printing -->
+    <div class="row">
+        <div class="col-12">
             <div class="card border-0">
                 <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Top Selling Products</h5>
-                    <a href="/reports/products" class="btn btn-sm btn-outline-primary">View Report</a>
+                    <h5 class="mb-0">Pending Printings</h5>
+                    <a href="/reports/printing" class="btn btn-sm btn-outline-primary">View Full Report</a>
                 </div>
-                <div class="list-group list-group-flush">
-                    <?php if (!empty($topVariants)): ?>
-                        <?php foreach ($topVariants as $variant): ?>
-                            <a href="/products/<?= $variant['product_id']; ?>" class="list-group-item list-group-item-action px-0">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <p class="mb-1 fw-500"><?= htmlspecialchars($variant['product_name']); ?></p>
-                                        <small class="text-muted"><?= htmlspecialchars($variant['size']); ?></small>
-                                    </div>
-                                    <span class="badge bg-primary"><?= $variant['total_sold']; ?> sold</span>
-                                </div>
-                            </a>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="p-3 text-muted text-center">
-                            No sales data available
-                        </div>
-                    <?php endif; ?>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Product</th>
+                                <th>Size</th>
+                                <th class="text-center">Patch</th>
+                                <th>Name</th>
+                                <th>Kit No.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($printingItems)): ?>
+                                <?php foreach ($printingItems as $item): ?>
+                                    <tr>
+                                        <td>
+                                            <a href="/orders/<?= $item['order_id']; ?>" class="text-decoration-none fw-bold" target="_blank">
+                                                <?= htmlspecialchars($item['order_number']); ?>
+                                            </a>
+                                        </td>
+                                        <td><?= htmlspecialchars($item['product_name']); ?></td>
+                                        <td><?= htmlspecialchars($item['size']); ?></td>
+                                        <td class="text-center">
+                                            <?php if ($item['patches_extra'] > 0): ?>
+                                                <span class="badge bg-success">Yes</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">No</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($item['kit_name'])): ?>
+                                                <?= htmlspecialchars($item['kit_name']); ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($item['kit_number'])): ?>
+                                                <?= htmlspecialchars($item['kit_number']); ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">No items pending for printing</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

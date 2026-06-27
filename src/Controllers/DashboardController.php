@@ -47,6 +47,31 @@ class DashboardController extends Controller
             $categoryCounts[] = $eb['total'];
         }
 
+        // Get pending orders items for printing (with patches, name, or kit number)
+        $db = $orderModel->getConnection();
+        $sql = "
+            SELECT
+                o.id as order_id,
+                o.order_number,
+                p.name as product_name,
+                pv.size,
+                oi.patches_extra,
+                oi.kit_name,
+                oi.kit_number
+            FROM orders o
+            INNER JOIN order_items oi ON o.id = oi.order_id
+            INNER JOIN product_variants pv ON oi.variant_id = pv.id
+            INNER JOIN products p ON oi.product_id = p.id
+            WHERE o.delivery_status = 'pending'
+            AND (oi.is_return = 0 OR oi.is_return IS NULL)
+            AND (oi.patches_extra > 0 OR oi.kit_name IS NOT NULL OR oi.kit_number IS NOT NULL)
+            ORDER BY o.id DESC, oi.id ASC
+            LIMIT 10
+        ";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $printingItems = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
         $this->render('dashboard/index', [
             'page_title' => 'Dashboard',
             'user' => Auth::getCurrentUser(),
@@ -56,7 +81,7 @@ class DashboardController extends Controller
             'lowStockCount' => $lowStockCount,
             'totalProducts' => $totalProducts,
             'recentOrders' => $recentOrders,
-            'topVariants' => $topVariants,
+            'printingItems' => $printingItems,
             'monthlyExpenses' => $monthlyExpenses,
             'expenseBreakdown' => $expenseBreakdown,
             'statusLabels' => json_encode($statusLabels),
