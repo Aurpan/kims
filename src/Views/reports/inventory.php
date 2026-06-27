@@ -2,7 +2,7 @@
 
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
-<div class="py-4">
+<div class="py-4 px-3 px-md-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Inventory Report</h1>
         <a href="/reports" class="btn btn-outline-secondary">
@@ -16,7 +16,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Total Inventory Value</p>
-                    <h4 class="mb-0">$<?= number_format($totalInventoryValue, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($totalInventoryValue, 2); ?></h4>
                 </div>
             </div>
         </div>
@@ -72,10 +72,10 @@
                                     <strong><?= $variant['stock']; ?></strong>
                                 </td>
                                 <td class="text-end">
-                                    $<?= number_format($variant['variant_price'] ?? $variant['base_price'] ?? 0, 2); ?>
+                                    ৳<?= number_format($variant['variant_price'] ?? $variant['base_price'] ?? 0, 2); ?>
                                 </td>
                                 <td class="text-end fw-bold">
-                                    $<?= number_format(($variant['stock'] * ($variant['variant_price'] ?? $variant['base_price'] ?? 0)), 2); ?>
+                                    ৳<?= number_format(($variant['stock'] * ($variant['variant_price'] ?? $variant['base_price'] ?? 0)), 2); ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

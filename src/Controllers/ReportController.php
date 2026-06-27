@@ -160,6 +160,45 @@ class ReportController extends Controller
         ]);
     }
 
+    public function printing(): void
+    {
+        Auth::requireLogin();
+
+        $db = (new Order())->getConnection();
+
+        // Get pending orders with items that have patches, name, or kit number
+        $sql = "
+            SELECT
+                o.id as order_id,
+                o.order_number,
+                p.name as product_name,
+                pv.size,
+                oi.quantity,
+                oi.patches_extra,
+                oi.kit_name,
+                oi.kit_number,
+                oi.id as item_id
+            FROM orders o
+            INNER JOIN order_items oi ON o.id = oi.order_id
+            INNER JOIN product_variants pv ON oi.variant_id = pv.id
+            INNER JOIN products p ON oi.product_id = p.id
+            WHERE o.delivery_status = 'pending'
+            AND (oi.is_return = 0 OR oi.is_return IS NULL)
+            AND (oi.patches_extra > 0 OR oi.kit_name IS NOT NULL OR oi.kit_number IS NOT NULL)
+            ORDER BY o.id DESC, oi.id ASC
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $items = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->render('reports/printing', [
+            'page_title' => 'Printing Report',
+            'items' => $items,
+            'total_items' => count($items)
+        ]);
+    }
+
     public function export(): void
     {
         Auth::requireLogin();

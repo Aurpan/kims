@@ -2,7 +2,7 @@
 
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
-<div class="py-4">
+<div class="py-4 px-3 px-md-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Top Products Report</h1>
         <a href="/reports" class="btn btn-outline-secondary">

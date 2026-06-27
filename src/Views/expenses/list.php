@@ -2,7 +2,7 @@
 
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
-<div class="py-4">
+<div class="py-4 px-3 px-md-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Expenses</h1>
         <a href="/expenses/create" class="btn btn-primary">
@@ -49,7 +49,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p class="text-muted small mb-1">Total for Filter</p>
-                        <h4 class="mb-0">$<?= number_format($totalForFilter, 2); ?></h4>
+                        <h4 class="mb-0">৳<?= number_format($totalForFilter, 2); ?></h4>
                     </div>
                     <div class="col-md-6">
                         <p class="text-muted small mb-1">Number of Expenses</p>
@@ -74,7 +74,7 @@
                                 <p class="text-muted small mb-1">
                                     <?= ucfirst(str_replace('_', ' ', htmlspecialchars($cb['category']))); ?>
                                 </p>
-                                <h5 class="mb-2">$<?= number_format($cb['total'], 2); ?></h5>
+                                <h5 class="mb-2">৳<?= number_format($cb['total'], 2); ?></h5>
                                 <small class="text-muted"><?= $cb['count']; ?> expense(s)</small>
                             </div>
                         </div>
@@ -114,7 +114,7 @@
                                         <?= htmlspecialchars($expense['description']); ?>
                                     </a>
                                 </td>
-                                <td class="text-end fw-bold">$<?= number_format($expense['amount'], 2); ?></td>
+                                <td class="text-end fw-bold">৳<?= number_format($expense['amount'], 2); ?></td>
                                 <td>
                                     <a href="/expenses/<?= $expense['id']; ?>" class="btn btn-sm btn-outline-primary" title="View">
                                         <i class="fas fa-eye"></i>

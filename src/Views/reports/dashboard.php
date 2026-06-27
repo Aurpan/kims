@@ -2,7 +2,7 @@
 
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
-<div class="py-4">
+<div class="py-4 px-3 px-md-0">
     <h1>Reports & Analytics</h1>
     <p class="text-muted mb-4">View detailed reports and export data</p>
 
@@ -87,6 +87,23 @@
                         <i class="fas fa-exclamation-triangle fa-2x text-danger opacity-50"></i>
                     </div>
                     <a href="/reports/stock-shortage" class="btn btn-sm btn-primary">
+                        <i class="fas fa-arrow-right"></i> View Report
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5>Printing Report</h5>
+                            <p class="text-muted small mb-0">Items from pending orders ready for printing</p>
+                        </div>
+                        <i class="fas fa-print fa-2x text-info opacity-50"></i>
+                    </div>
+                    <a href="/reports/printing" class="btn btn-sm btn-primary">
                         <i class="fas fa-arrow-right"></i> View Report
                     </a>
                 </div>

@@ -2,7 +2,7 @@
 
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
-<div class="py-4">
+<div class="py-4 px-3 px-md-0">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Revenue Report</h1>
         <a href="/reports" class="btn btn-outline-secondary">
@@ -38,7 +38,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Period Total</p>
-                    <h4 class="mb-0">$<?= number_format($periodTotal, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($periodTotal, 2); ?></h4>
                     <small class="text-muted">
                         <?= $periodTotal > $previousTotal ? '↑' : '↓'; ?>
                         vs previous period
@@ -51,7 +51,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Daily Average</p>
-                    <h4 class="mb-0">$<?= number_format($avgDaily, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($avgDaily, 2); ?></h4>
                     <small class="text-muted"><?= count($dailyData); ?> days</small>
                 </div>
             </div>
@@ -61,7 +61,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Previous Period</p>
-                    <h4 class="mb-0">$<?= number_format($previousTotal, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($previousTotal, 2); ?></h4>
                     <small class="text-muted d-block">
                         <?php
                         $change = $previousTotal > 0 ? (($periodTotal - $previousTotal) / $previousTotal) * 100 : 0;
@@ -104,7 +104,7 @@
                     ?>
                         <tr>
                             <td><?= date('M d, Y (l)', strtotime($day['date'])); ?></td>
-                            <td class="text-end fw-bold">$<?= number_format($day['revenue'], 2); ?></td>
+                            <td class="text-end fw-bold">৳<?= number_format($day['revenue'], 2); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

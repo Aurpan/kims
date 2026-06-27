@@ -198,6 +198,8 @@ class OrderController extends Controller
                 }
                 $patchesExtra = (float) ($_POST['patches_extra'][$i] ?? 0);
                 $namekitExtra = (float) ($_POST['namekit_extra'][$i] ?? 0);
+                $kitName      = trim($_POST['kit_name'][$i] ?? '');
+                $kitNumber    = trim($_POST['kit_number'][$i] ?? '');
                 $lineTotal = ($unitPrice * $quantity) + $patchesExtra + $namekitExtra;
                 $totalAmount += $lineTotal;
 
@@ -211,6 +213,10 @@ class OrderController extends Controller
                     'quantity'       => $quantity,
                     'unit_price'     => $unitPrice,
                     'line_total'     => $lineTotal,
+                    'patches_extra'  => $patchesExtra,
+                    'namekit_extra'  => $namekitExtra,
+                    'kit_name'       => $kitName ?: null,
+                    'kit_number'     => $kitNumber ?: null,
                     'stock_deducted' => $stockDeducted,
                 ]);
 
@@ -440,6 +446,8 @@ class OrderController extends Controller
                 }
                 $patchesExtra = (float) ($_POST['patches_extra'][$i] ?? 0);
                 $namekitExtra = (float) ($_POST['namekit_extra'][$i] ?? 0);
+                $kitName      = trim($_POST['kit_name'][$i] ?? '');
+                $kitNumber    = trim($_POST['kit_number'][$i] ?? '');
                 $lineTotal    = ($unitPrice * $quantity) + $patchesExtra + $namekitExtra;
                 $totalAmount += $lineTotal;
 
@@ -453,6 +461,10 @@ class OrderController extends Controller
                     'quantity'       => $quantity,
                     'unit_price'     => $unitPrice,
                     'line_total'     => $lineTotal,
+                    'patches_extra'  => $patchesExtra,
+                    'namekit_extra'  => $namekitExtra,
+                    'kit_name'       => $kitName ?: null,
+                    'kit_number'     => $kitNumber ?: null,
                     'stock_deducted' => $stockDeducted,
                 ]);
 
@@ -697,17 +709,23 @@ class OrderController extends Controller
                 }
                 $patchesExtra = (float) ($_POST['patches_extra'][$i] ?? 0);
                 $namekitExtra = (float) ($_POST['namekit_extra'][$i] ?? 0);
+                $kitName      = trim($_POST['kit_name'][$i] ?? '');
+                $kitNumber    = trim($_POST['kit_number'][$i] ?? '');
                 $lineTotal    = ($unitPrice * $qty) + $patchesExtra + $namekitExtra;
                 $totalAmount += $lineTotal;
 
                 $itemModel->create([
-                    'order_id'   => $exchangeOrderId,
-                    'product_id' => (int) $newProductIds[$i],
-                    'variant_id' => $variantId,
-                    'quantity'   => $qty,
-                    'unit_price' => $unitPrice,
-                    'line_total' => $lineTotal,
-                    'is_return'  => 0,
+                    'order_id'      => $exchangeOrderId,
+                    'product_id'    => (int) $newProductIds[$i],
+                    'variant_id'    => $variantId,
+                    'quantity'      => $qty,
+                    'unit_price'    => $unitPrice,
+                    'line_total'    => $lineTotal,
+                    'patches_extra' => $patchesExtra,
+                    'namekit_extra' => $namekitExtra,
+                    'kit_name'      => $kitName ?: null,
+                    'kit_number'    => $kitNumber ?: null,
+                    'is_return'     => 0,
                 ]);
 
                 $variantModel->updateStock($variantId, -$qty);

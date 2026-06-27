@@ -200,7 +200,20 @@
                                     }
                                 ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($item['product_name']); ?><?= $stockBadge; ?></td>
+                                    <td>
+                                        <?= htmlspecialchars($item['product_name']); ?><?= $stockBadge; ?>
+                                        <?php if (!empty($item['patches_extra']) && $item['patches_extra'] > 0): ?>
+                                            <br><span class="badge bg-secondary mt-1">WC Patches +৳<?= number_format($item['patches_extra'], 2); ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($item['kit_name']) || !empty($item['kit_number'])): ?>
+                                            <br><span class="badge bg-info text-dark mt-1">
+                                                Name-Kit<?= !empty($item['kit_name']) ? ': ' . htmlspecialchars($item['kit_name']) : ''; ?><?= !empty($item['kit_number']) ? ' #' . htmlspecialchars($item['kit_number']) : ''; ?>
+                                                <?= (!empty($item['namekit_extra']) && $item['namekit_extra'] > 0) ? ' +৳' . number_format($item['namekit_extra'], 2) : ''; ?>
+                                            </span>
+                                        <?php elseif (!empty($item['namekit_extra']) && $item['namekit_extra'] > 0): ?>
+                                            <br><span class="badge bg-info text-dark mt-1">Name-Kit +৳<?= number_format($item['namekit_extra'], 2); ?></span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= htmlspecialchars($item['size']); ?></td>
                                     <td class="text-center"><?= $item['quantity']; ?></td>
                                     <td class="text-end">৳<?= number_format($item['unit_price'], 2); ?></td>

@@ -2,8 +2,8 @@
 
 <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
 
-<div class="py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-3 px-md-0">
+<div class="py-4 px-3 px-md-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Orders</h1>
         <a href="/orders/create" class="btn btn-primary">
             <i class="fas fa-plus"></i> New Order

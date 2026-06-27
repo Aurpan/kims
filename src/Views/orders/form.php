@@ -476,6 +476,71 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.querySelector(`.qty-input-${idx}`).value = item.quantity;
         document.querySelector(`.unit-price-${idx}`).value = item.unit_price;
+
+        if (item.patches_extra > 0) {
+            document.getElementById(`patches-chk-${idx}`).checked = true;
+            togglePatches(idx);
+            document.querySelector(`.patches-extra-${idx}`).value = item.patches_extra;
+        }
+        if (item.namekit_extra > 0 || item.kit_name || item.kit_number) {
+            document.getElementById(`namekit-chk-${idx}`).checked = true;
+            toggleNameKit(idx);
+            document.querySelector(`.namekit-extra-${idx}`).value = item.namekit_extra;
+            if (item.kit_name)   document.querySelector(`[data-item-row="${idx}"] input[name="kit_name[]"]`).value = item.kit_name;
+            if (item.kit_number) document.querySelector(`[data-item-row="${idx}"] input[name="kit_number[]"]`).value = item.kit_number;
+        }
+        if (item.patches_extra > 0 || item.namekit_extra > 0 || item.kit_name || item.kit_number) {
+            document.getElementById(`extras-row-${idx}`).style.display = '';
+        }
+
+        checkStock(idx);
+        updateRowTotal(idx);
+    });
+    <?php elseif (!empty($old['product_id'])): ?>
+    const oldProductIds = <?= json_encode($old['product_id'] ?? []); ?>;
+    const oldVariantIds = <?= json_encode($old['variant_id'] ?? []); ?>;
+    const oldQuantities = <?= json_encode($old['quantity'] ?? []); ?>;
+    const oldUnitPrices = <?= json_encode($old['unit_price'] ?? []); ?>;
+    const oldPatchesExtras = <?= json_encode($old['patches_extra'] ?? []); ?>;
+    const oldNamekitExtras = <?= json_encode($old['namekit_extra'] ?? []); ?>;
+    const oldKitNames = <?= json_encode($old['kit_name'] ?? []); ?>;
+    const oldKitNumbers = <?= json_encode($old['kit_number'] ?? []); ?>;
+
+    oldProductIds.forEach((productId, i) => {
+        const idx = rowCounter++;
+        document.getElementById('order-items').insertAdjacentHTML('beforeend', createRowHtml(idx));
+
+        const productSelect = document.querySelector(`[data-item-row="${idx}"] select[name="product_id[]"]`);
+        productSelect.value = productId;
+        updateVariants(idx);
+
+        const variantSelect = document.querySelector(`.variant-select-${idx}`);
+        variantSelect.value = oldVariantIds[i] || '';
+
+        document.querySelector(`.qty-input-${idx}`).value = oldQuantities[i] || 1;
+        document.querySelector(`.unit-price-${idx}`).value = oldUnitPrices[i] || 0;
+
+        const patchesExtra = parseFloat(oldPatchesExtras[i]) || 0;
+        const namekitExtra = parseFloat(oldNamekitExtras[i]) || 0;
+        const kitName = oldKitNames[i] || '';
+        const kitNumber = oldKitNumbers[i] || '';
+
+        if (patchesExtra > 0) {
+            document.getElementById(`patches-chk-${idx}`).checked = true;
+            togglePatches(idx);
+            document.querySelector(`.patches-extra-${idx}`).value = patchesExtra;
+        }
+        if (namekitExtra > 0 || kitName || kitNumber) {
+            document.getElementById(`namekit-chk-${idx}`).checked = true;
+            toggleNameKit(idx);
+            document.querySelector(`.namekit-extra-${idx}`).value = namekitExtra;
+            if (kitName)   document.querySelector(`[data-item-row="${idx}"] input[name="kit_name[]"]`).value = kitName;
+            if (kitNumber) document.querySelector(`[data-item-row="${idx}"] input[name="kit_number[]"]`).value = kitNumber;
+        }
+        if (patchesExtra > 0 || namekitExtra > 0 || kitName || kitNumber) {
+            document.getElementById(`extras-row-${idx}`).style.display = '';
+        }
+
         checkStock(idx);
         updateRowTotal(idx);
     });

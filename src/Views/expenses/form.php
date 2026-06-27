@@ -44,7 +44,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Amount *</label>
                                     <div class="input-group">
-                                        <span class="input-group-text">$</span>
+                                        <span class="input-group-text">৳</span>
                                         <input type="number" name="amount" class="form-control" step="0.01" min="0" required
                                                value="<?= htmlspecialchars($expense['amount'] ?? $old['amount'] ?? ''); ?>">
                                     </div>
@@ -94,7 +94,7 @@
                     <h5><i class="fas fa-info-circle"></i> Tips</h5>
                     <ul class="small mb-0">
                         <li class="mb-2"><strong>Category:</strong> Required - choose appropriate category</li>
-                        <li class="mb-2"><strong>Amount:</strong> Enter numeric value in dollars</li>
+                        <li class="mb-2"><strong>Amount:</strong> Enter numeric value in BDT</li>
                         <li class="mb-2"><strong>Date:</strong> Date when expense occurred</li>
                         <li><strong>Description:</strong> Optional details for reference</li>
                     </ul>
