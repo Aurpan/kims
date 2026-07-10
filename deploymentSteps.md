@@ -32,11 +32,17 @@ These were real fixes uncovered while deploying, not just documentation:
    - `migrate.php` is deliberately left un-blocked, since it's meant to be
      hit once via browser after deployment, then deleted.
 
-3. **`migrate.php`** — fixed the SQL statement splitter. It split
-   `migrations/*.sql` on `;` and discarded any statement whose block
-   happened to start with a `-- comment` line — which was nearly every
-   `CREATE TABLE` in `001_initial_schema.sql` (each preceded by a comment).
-   This silently dropped every table creation while still reporting
+3. **`migrate.php`** — fixed two bugs:
+   - The SQL statement splitter split `migrations/*.sql` on `;` and
+     discarded any statement whose block happened to start with a
+     `-- comment` line — which was nearly every `CREATE TABLE` in
+     `001_initial_schema.sql` (each preceded by a comment). This silently
+     dropped every table creation while still reporting success.
+   - It only did `require 'config/database.php'`, never
+     `require 'config/config.php'` — so the `.env` loader (which lives in
+     `config.php`) never ran, and `migrate.php` always connected with the
+     hardcoded local-dev fallback (`root`/empty password) instead of the
+     real production credentials. Fixed by requiring `config.php` first.
    success. Fixed to strip full-line comments before splitting.
 
 4. **`migrations/001_initial_schema.sql`** — hardcoded
@@ -68,6 +74,24 @@ These were real fixes uncovered while deploying, not just documentation:
 7. **`deployment/DEPLOYMENT.md`** (new) — the general step-by-step guide
    (superseded in explanatory detail by this file, but still the quick
    reference for future deploys).
+
+8. **`.htaccess`** — fixed a static-asset 404 bug found after going live
+   (symptom: sidebar rendered as plain stacked content at the top of every
+   page on mobile — because `public/css/style.css` was 404ing, so its
+   off-canvas sidebar CSS never loaded at all). The app's views reference
+   assets with root-relative paths (`/css/...`, `/js/...`, `/favicon.svg`,
+   `/uploads/...`), assuming `public/` itself is the document root. Since
+   this deployment puts the whole repo at the document root instead (only
+   dynamic routes get rewritten to `public/index.php`), every static asset
+   request 404'd. Added explicit rewrite rules mapping
+   `/css|js|images|uploads/*` and `/favicon.svg` to their real location
+   under `public/`.
+
+9. **`deployment/build-package.ps1`** — stopped creating a phantom
+   top-level `uploads/` directory. The app actually writes uploads to
+   `public/uploads/products/` (already included via the `public/` copy);
+   the top-level one was dead weight. Also excludes the leftover
+   `public/test-login-fail.png` debug screenshot from the package.
 
 ## Part 2 — Step-by-step deployment procedure
 
@@ -155,7 +179,8 @@ admin row in `users`.
 
 ### 6. Set folder permissions
 
-`uploads/` and `logs/` → 755 (bump to 775 only if writes fail).
+`public/uploads/` (where the app actually writes product images) and
+`logs/` → 755 (bump to 775 only if writes fail).
 
 ### 7. Verify and lock down
 
@@ -167,6 +192,11 @@ admin row in `users`.
    `migrations/001_initial_schema.sql` should both return 403.
 5. Confirm the root URL loads the app (redirects to login) rather than
    showing a directory listing.
+6. Confirm static assets actually load — `curl -I https://kimsbd.online/css/style.css`
+   should return 200, not 404. If it 404s, the sidebar (and other layout
+   CSS) silently fails to load, which shows up on mobile as the sidebar
+   nav rendering as plain stacked content at the top of the page instead
+   of a collapsible off-canvas menu.
 
 ## Future migrations
 
@@ -174,8 +204,55 @@ Add new `.sql` files to `migrations/`, list them in `migrate.php`'s
 `$migrations` array, then repeat step 5. The `migrations` tracking table
 skips anything already applied.
 
-## Future redeploys / code updates
+## Future redeploys / code updates — manual (zip)
 
 Re-run `deployment\build-package.ps1`, upload the new zip, extract over the
 existing files (this will not touch `config/.env`, `uploads/`, or `logs/`
 since those aren't in the package). Re-run any new migrations the same way.
+
+## Future redeploys / code updates — automated (cPanel Git Version Control)
+
+This repo has a GitHub remote (`https://github.com/Aurpan/kims.git`) and a
+`.cpanel.yml` at the repo root, so cPanel's **Git™ Version Control** feature
+can pull and deploy without manually zipping/uploading anything.
+
+**What changed to make this possible:**
+- `.cpanel.yml` (new) — defines the deployment tasks cPanel runs when you
+  click "Deploy HEAD Commit". It copies the same curated subset
+  `deployment/build-package.ps1` already used — `public/`, `src/`,
+  `migrations/`, `config/config.php` + `config/database.php` (never
+  `.env`), `.htaccess`, `migrate.php` — into `/home/kimsbdon/public_html`.
+  Dev-only files (`test-db.php`, `install.php`, `node_modules/`, docs,
+  etc.) are never part of the copy, same as the zip approach.
+- `vendor/` stays **out of git** (still gitignored) and out of
+  `.cpanel.yml`'s copy list entirely. It's already sitting correctly on the
+  server from the earlier manual zip upload, and it only changes when a
+  Composer dependency is added/updated — a rare, deliberate event. Rather
+  than committing ~2,300 third-party files to a public repo (or gambling on
+  `composer` being available in cPanel's deploy shell), automated deploys
+  simply leave `vendor/` alone. If you ever add a dependency: run
+  `composer install` locally, then re-upload just the `vendor/` folder once
+  via File Manager (or rebuild and use the zip for that one deploy) — the
+  automated git-based flow resumes normally for every deploy after that.
+
+**One-time setup in cPanel:**
+1. cPanel → **Git™ Version Control** → **Create**.
+2. Clone URL: `https://github.com/Aurpan/kims.git`.
+3. Repository Path: something **outside** the web root, e.g.
+   `/home/kimsbdon/repositories/kims` (do **not** set this to `public_html`
+   — keeping the git checkout separate means `.git/`, dev scripts, docs,
+   etc. are never inside the docroot at all, not even behind `.htaccess`).
+4. Create. cPanel will detect `.cpanel.yml` automatically.
+
+**Every time you want to deploy a change:**
+1. Commit and `git push` to GitHub from your local machine, as normal.
+2. In cPanel → Git™ Version Control → **Manage** the repo → **Pull or
+   Deploy** tab → **Update from Remote** (fetches the new commit).
+3. Click **Deploy HEAD Commit** — this runs the `.cpanel.yml` tasks, copying
+   the updated files into `public_html`.
+
+This never touches `config/.env`, `public/uploads/`, or `logs/` on the
+server (they aren't part of the copy), so production config and
+customer-uploaded images are safe across deploys. New DB migrations still
+need a manual run (phpMyAdmin import or `migrate.php`, per above) — schema
+changes are deliberately not automatic.

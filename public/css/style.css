@@ -85,11 +85,23 @@ main {
         left: 0;
     }
 
+    /* Collapse Bootstrap's container/row/col gutters so the page uses the
+       full screen width on mobile, then apply one small padding of our own */
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .row {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
     main {
         margin-left: 0;
         margin-top: 0;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
         overflow-x: hidden;
     }
 }

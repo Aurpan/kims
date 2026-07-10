@@ -6,7 +6,8 @@ deployment/
 config/.env
 .env
 
-# Composer
+# Composer (deployed to the server once manually; re-upload vendor/ by hand
+# only when a dependency actually changes - see deploymentSteps.md)
 vendor/
 
 # Node

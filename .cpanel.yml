@@ -1,0 +1,12 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/kimsbdon/public_html
+    - /bin/cp -R public "$DEPLOYPATH"/
+    - /bin/cp -R src "$DEPLOYPATH"/
+    - /bin/cp -R migrations "$DEPLOYPATH"/
+    - /bin/cp config/config.php "$DEPLOYPATH"/config/config.php
+    - /bin/cp config/database.php "$DEPLOYPATH"/config/database.php
+    - /bin/cp config/.env.example "$DEPLOYPATH"/config/.env.example
+    - /bin/cp .htaccess "$DEPLOYPATH"/.htaccess
+    - /bin/cp migrate.php "$DEPLOYPATH"/migrate.php

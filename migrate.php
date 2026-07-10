@@ -2,6 +2,7 @@
 // Enhanced KIMS Database Migration Runner with Tracking
 // Tracks which migrations have been run and prevents duplicates
 
+require 'config/config.php';
 require 'config/database.php';
 
 try {
