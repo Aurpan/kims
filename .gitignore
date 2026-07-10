@@ -1,5 +1,6 @@
 # Deploy
 deploy/
+deployment/
 
 # Environment & secrets
 config/.env

@@ -2,16 +2,38 @@
     RewriteEngine On
     RewriteBase /
 
+    # Block direct web access to app internals (only public/ should be served)
+    RewriteRule ^(config|src|migrations|logs|vendor|node_modules|deployment)(/|$) - [F,L]
+
+    # Always route the bare root through the app (it's a real directory,
+    # so the !-d check below would otherwise let the server autoindex it)
+    RewriteRule ^$ public/index.php [QSA,L]
+
     # Don't rewrite if it's a real file or directory
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
     # Rewrite all requests to public/index.php
     RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
+
+    # Also prevent directory listings for any folder that isn't blocked above
+    Options -Indexes
 </IfModule>
 
 # Prevent direct access to sensitive directories
 <FilesMatch "\.env">
+    Deny from all
+</FilesMatch>
+
+# Block direct access to non-production/dev helper scripts if left on the server.
+# migrate.php is deliberately NOT in this list: it's meant to be run once via
+# the browser after deployment, then deleted (see deployment/DEPLOYMENT.md).
+<FilesMatch "^(install|reset-migrations|check-migrations|check-migrations-table|check-table|test-db|test-variants|get-product|verify-tracking|add-missing-columns)\.php$">
+    Deny from all
+</FilesMatch>
+
+# Block source/config file types from being served directly anywhere
+<FilesMatch "\.(sql|md|log|lock|json|gitignore)$">
     Deny from all
 </FilesMatch>
 

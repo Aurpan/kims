@@ -88,11 +88,15 @@ try {
         try {
             $sql = file_get_contents($migration);
 
-            // Split by semicolon and filter out comments
+            // Strip full-line comments before splitting so a leading comment
+            // on a statement doesn't cause the whole statement to be dropped
+            $sql = preg_replace('/^\s*--.*$/m', '', $sql);
+
+            // Split by semicolon and drop empty statements
             $statements = array_filter(
                 array_map('trim', explode(';', $sql)),
                 function($s) {
-                    return !empty($s) && !str_starts_with(trim($s), '--');
+                    return !empty($s);
                 }
             );
 

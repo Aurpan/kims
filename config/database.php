@@ -6,7 +6,7 @@ $db_config = [
     'host' => $_ENV['DB_HOST'] ?? 'localhost',
     'user' => $_ENV['DB_USER'] ?? 'root',
     'password' => $_ENV['DB_PASSWORD'] ?? '',
-    'database' => $_ENV['DB_NAME'] ?? 'inventory_mgmt',
+    'database' => $_ENV['DB_NAME'] ?? 'kimsbdon_inventory',
     'port' => $_ENV['DB_PORT'] ?? 3306,
     'charset' => 'utf8mb4'
 ];

@@ -3,8 +3,8 @@
 -- MySQL 5.7+
 
 -- Create database if it doesn't exist
-CREATE DATABASE IF NOT EXISTS inventory_mgmt;
-USE inventory_mgmt;
+CREATE DATABASE IF NOT EXISTS kimsbdon_inventory;
+USE kimsbdon_inventory;
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
