@@ -53,8 +53,16 @@ class Order extends Model
         $params = [];
 
         if (!empty($filters['delivery_status'])) {
-            $query .= " AND delivery_status = ?";
-            $params[] = $filters['delivery_status'];
+            if (is_array($filters['delivery_status'])) {
+                $placeholders = implode(',', array_fill(0, count($filters['delivery_status']), '?'));
+                $query .= " AND delivery_status IN ({$placeholders})";
+                foreach ($filters['delivery_status'] as $status) {
+                    $params[] = $status;
+                }
+            } else {
+                $query .= " AND delivery_status = ?";
+                $params[] = $filters['delivery_status'];
+            }
         }
 
         if (!empty($filters['customer_name'])) {

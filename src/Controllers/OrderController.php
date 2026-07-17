@@ -13,7 +13,14 @@ class OrderController extends Controller
     {
         Auth::requireLogin();
 
-        $deliveryStatus = $_GET['delivery_status'] ?? '';
+        if (!isset($_GET['status_filter_touched'])) {
+            $deliveryStatus = ['pending', 'waiting_for_print', 'package_ready'];
+        } else {
+            $deliveryStatus = $_GET['delivery_status'] ?? [];
+            if (!is_array($deliveryStatus)) {
+                $deliveryStatus = $deliveryStatus === '' ? [] : [$deliveryStatus];
+            }
+        }
         $search = $_GET['search'] ?? '';
         $searchType = $_GET['search_type'] ?? 'order_number';
         $page = (int) ($_GET['page'] ?? 1);
@@ -23,7 +30,7 @@ class OrderController extends Controller
         $orderModel = new Order();
         $filters = [];
 
-        if ($deliveryStatus) {
+        if (!empty($deliveryStatus)) {
             $filters['delivery_status'] = $deliveryStatus;
         }
         if ($search) {

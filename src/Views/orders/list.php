@@ -19,26 +19,55 @@
     <?php endif; ?>
 
     <!-- Filters -->
+    <?php
+        $selectedStatuses = $deliveryStatus;
+        $statusOptions = [
+            'pending'           => 'Pending',
+            'waiting_for_print' => 'Waiting For Print',
+            'package_ready'     => 'Package Ready',
+            'courier_pickup'    => 'Courier Pickup',
+            'personal_pickup'   => 'Personal Pickup',
+            'in_transit'        => 'In Transit',
+            'delivered'         => 'Delivered',
+            'on_hold'           => 'On Hold',
+            'cancelled'         => 'Cancelled',
+            'returned'          => 'Returned',
+        ];
+    ?>
     <div class="card border-0 mb-4">
         <div class="card-body">
             <form method="GET" action="/orders" class="row g-3" id="ordersFilterForm">
                 <input type="hidden" name="search_type" value="order_number">
-                <div class="col-md-2">
-                    <select name="delivery_status" class="form-select" onchange="document.getElementById('ordersFilterForm').submit();">
-                        <option value="">All Status</option>
-                        <option value="pending" <?= $deliveryStatus === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                        <option value="waiting_for_print" <?= $deliveryStatus === 'waiting_for_print' ? 'selected' : ''; ?>>Waiting For Print</option>
-                        <option value="package_ready" <?= $deliveryStatus === 'package_ready' ? 'selected' : ''; ?>>Package Ready</option>
-                        <option value="courier_pickup" <?= $deliveryStatus === 'courier_pickup' ? 'selected' : ''; ?>>Courier Pickup</option>
-                        <option value="personal_pickup" <?= $deliveryStatus === 'personal_pickup' ? 'selected' : ''; ?>>Personal Pickup</option>
-                        <option value="in_transit" <?= $deliveryStatus === 'in_transit' ? 'selected' : ''; ?>>In Transit</option>
-                        <option value="delivered" <?= $deliveryStatus === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                        <option value="on_hold" <?= $deliveryStatus === 'on_hold' ? 'selected' : ''; ?>>On Hold</option>
-                        <option value="cancelled" <?= $deliveryStatus === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                        <option value="returned" <?= $deliveryStatus === 'returned' ? 'selected' : ''; ?>>Returned</option>
-                    </select>
+                <input type="hidden" name="status_filter_touched" value="1">
+                <div class="col-md-3">
+                    <div class="dropdown" id="statusFilterDropdown">
+                        <button class="form-select text-start text-truncate" type="button" id="statusFilterToggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="statusFilterLabel" class="small">
+                                <?php if (empty($selectedStatuses)): ?>
+                                    All Status
+                                <?php else: ?>
+                                    <?= htmlspecialchars(implode(', ', array_map(fn($s) => $statusOptions[$s] ?? $s, $selectedStatuses))); ?>
+                                <?php endif; ?>
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu p-2" aria-labelledby="statusFilterToggle" style="max-height: 320px; overflow-y: auto; min-width: 220px;">
+                            <li class="form-check ps-4 pb-2 border-bottom mb-2">
+                                <input class="form-check-input" type="checkbox" id="statusSelectAllCheckbox"
+                                       <?= count($selectedStatuses) === count($statusOptions) ? 'checked' : ''; ?>>
+                                <label class="form-check-label fw-bold" for="statusSelectAllCheckbox">Select All</label>
+                            </li>
+                            <?php foreach ($statusOptions as $value => $label): ?>
+                                <li class="form-check ps-4">
+                                    <input class="form-check-input status-filter-checkbox" type="checkbox"
+                                           name="delivery_status[]" value="<?= $value; ?>" id="status-<?= $value; ?>"
+                                           <?= in_array($value, $selectedStatuses) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="status-<?= $value; ?>"><?= $label; ?></label>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <input type="text" id="searchInput" name="search" class="form-control" placeholder="Search by order #..." value="<?= htmlspecialchars($search); ?>">
                 </div>
                 <div class="col-md-3">
@@ -139,8 +168,8 @@
 
     <!-- Pagination -->
     <?php if ($totalPages > 1):
-        $filterQuery = '';
-        if ($deliveryStatus) $filterQuery .= '&delivery_status=' . urlencode($deliveryStatus);
+        $filterQuery = '&status_filter_touched=1';
+        foreach ($selectedStatuses as $status) $filterQuery .= '&delivery_status[]=' . urlencode($status);
         if ($search) $filterQuery .= '&search=' . urlencode($search) . '&search_type=' . urlencode($searchType);
         if ($startDate) $filterQuery .= '&start_date=' . urlencode($startDate);
         if ($endDate) $filterQuery .= '&end_date=' . urlencode($endDate);
@@ -168,6 +197,26 @@
 </div>
 
 <script>
+(function () {
+    const dropdownMenu = document.querySelector('#statusFilterDropdown .dropdown-menu');
+    const checkboxes = document.querySelectorAll('.status-filter-checkbox');
+    const form = document.getElementById('ordersFilterForm');
+
+    // Keep the dropdown open while checking/unchecking options
+    dropdownMenu.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    checkboxes.forEach(cb => cb.addEventListener('change', function () {
+        form.submit();
+    }));
+
+    document.getElementById('statusSelectAllCheckbox').addEventListener('change', function () {
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        form.submit();
+    });
+})();
+
 let searchTimeout;
 document.getElementById('searchInput').addEventListener('input', function() {
     clearTimeout(searchTimeout);
