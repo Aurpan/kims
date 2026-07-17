@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $monthlyRevenue = $orderModel->getTotalRevenue($monthStart, $monthEnd);
         $pendingOrders = $orderModel->getByStatus('pending', 1, 1)['total'];
         $lowStockCount = count($variantModel->getLowStock(10));
-        $totalProducts = count($productModel->all());
+        $totalProducts = $productModel->countActive();
         $recentOrders = $orderModel->getRecentOrders(5);
         $statusDistribution = $orderModel->getStatusDistribution();
         $monthlyExpenses = $expenseModel->getMonthlyTotal();

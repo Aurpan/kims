@@ -37,6 +37,12 @@ class Product extends Model
         return $product;
     }
 
+    public function countActive(): int
+    {
+        $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE is_active = TRUE";
+        return (int) $this->db->fetch($sql)['total'];
+    }
+
     public function getTotalStock(int $productId): int
     {
         $sql = "SELECT SUM(stock) as total FROM product_variants WHERE product_id = ?";
