@@ -5,6 +5,26 @@ document records both the modifications made to the codebase to make this
 deployment path work, and the exact steps to repeat it (e.g. redeploying, or
 setting up a second environment).
 
+## Quick reference — routine code deploy (confirmed working 2026-07-12)
+
+The one-time cPanel Git Version Control setup (see Part 2, last section) is
+already done. For every normal code change from here on:
+
+1. Locally: `git add <files>` → `git commit` → `git push`.
+2. cPanel → **Git™ Version Control** → **Manage** the repo → **Pull or
+   Deploy** tab → **Update from Remote**.
+3. **Deploy HEAD Commit** — runs `.cpanel.yml`, copying `public/`, `src/`,
+   `migrations/`, `config/config.php`, `config/database.php`, `.htaccess`,
+   `migrate.php` into `/home/kimsbdon/public_html`.
+4. If the change added/modified DB schema, run the new migration manually
+   (phpMyAdmin import or `migrate.php`, per Part 2 step 5) — schema changes
+   are never automatic.
+5. Spot-check the live site for the change.
+
+`vendor/`, `config/.env`, `public/uploads/`, and `logs/` are never touched by
+this flow — see "What changed to make this possible" below for why `vendor/`
+specifically is handled separately.
+
 ## Part 1 — Code/config modifications made
 
 These were real fixes uncovered while deploying, not just documentation:

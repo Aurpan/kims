@@ -134,33 +134,17 @@ inventory-management/
 
 ## cPanel Deployment
 
-1. **Upload files to public_html or subdirectory**
-   - Via FTP or cPanel File Manager
+See [`deploymentSteps.md`](deploymentSteps.md) for the full, tested procedure
+(this project is live at `https://kimsbd.online`).
 
-2. **Create MySQL Database**
-   - Use cPanel → Databases → MySQL Databases
-   - Create database and user
-   - Grant all privileges
-
-3. **Import database schema**
-   - Use cPanel → phpMyAdmin
-   - Select database → Import → Choose `001_initial_schema.sql`
-
-4. **Update database configuration**
-   - Edit `config/database.php` with cPanel credentials
-
-5. **Set correct permissions**
-   ```bash
-   chmod -R 755 .
-   chmod -R 777 uploads/ logs/
-   ```
-
-6. **Enable HTTPS**
-   - Use cPanel AutoSSL or Let's Encrypt
-
-7. **Test application**
-   - Access via your domain
-   - Test login and basic operations
+- **First-time setup / a new environment**: [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md)
+  (manual File Manager zip upload — DB creation, migrations, permissions,
+  HTTPS, lockdown checks).
+- **Routine code updates** (the normal case once deployed): cPanel Git™
+  Version Control — see the "Quick reference — routine code deploy" section
+  at the top of [`deploymentSteps.md`](deploymentSteps.md). In short: push to
+  GitHub, then in cPanel Git™ Version Control click **Update from Remote**
+  → **Deploy HEAD Commit**.
 
 ## Database Schema
 
