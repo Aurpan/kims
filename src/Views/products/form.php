@@ -32,7 +32,7 @@
                         <input type="text" class="form-control <?= isset($errors['name']) ? 'is-invalid' : ''; ?>"
                                id="name" name="name" required
                                value="<?= htmlspecialchars($product['name'] ?? $old['name'] ?? ''); ?>"
-                               placeholder="e.g., Jersey XL">
+                               placeholder="e.g., Barcelona Home (Player) 26/27">
                         <?php if (isset($errors['name'])): ?>
                             <div class="invalid-feedback"><?= htmlspecialchars($errors['name']); ?></div>
                         <?php endif; ?>

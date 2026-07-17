@@ -259,7 +259,7 @@ function createRowHtml(idx) {
         <div class="d-flex gap-3 mb-2">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="patches-chk-${idx}" onchange="togglePatches(${idx})">
-                <label class="form-check-label small" for="patches-chk-${idx}">WC Patches</label>
+                <label class="form-check-label small" for="patches-chk-${idx}">Patches</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="namekit-chk-${idx}" onchange="toggleNameKit(${idx})">

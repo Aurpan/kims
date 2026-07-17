@@ -76,6 +76,10 @@ class ProductController extends Controller
             ]
         );
 
+        if (isset($errors['category'])) {
+            $errors['category'] = 'You must select a category or create one';
+        }
+
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
             $_SESSION['old_input'] = $_POST;
@@ -194,6 +198,10 @@ class ProductController extends Controller
                 'base_price' => 'required|numeric'
             ]
         );
+
+        if (isset($errors['category'])) {
+            $errors['category'] = 'You must select a category or create one';
+        }
 
         if (!empty($errors)) {
             $_SESSION['errors'] = $errors;
