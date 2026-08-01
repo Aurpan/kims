@@ -16,6 +16,32 @@
             <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-edit"></i> Edit
             </a>
+            <?php
+                $waLines = [
+                    'Order ID: ' . str_replace('ORD-', '', $order['order_number']),
+                    $order['customer_name'],
+                    $order['customer_phone'],
+                    $order['delivery_address'],
+                    '',
+                    'Products:',
+                ];
+                foreach ($items as $item) {
+                    $extras = [];
+                    if (!empty($item['kit_name'])) $extras[] = $item['kit_name'];
+                    if (!empty($item['kit_number'])) $extras[] = $item['kit_number'];
+                    if (!empty($item['patches_extra']) && $item['patches_extra'] > 0) $extras[] = 'Patch';
+
+                    $line = '- ' . $item['product_name'] . ' (' . $item['size'] . ')';
+                    if ($extras) $line .= ' --> ' . implode(' - ', $extras);
+                    $waLines[] = $line;
+                }
+                $waLines[] = '';
+                $waLines[] = 'Amount: ' . number_format($order['total_amount'], 2);
+                $waText = implode("\n", $waLines);
+            ?>
+            <a href="https://wa.me/?text=<?= rawurlencode($waText); ?>" target="_blank" class="btn btn-outline-success">
+                <i class="fab fa-whatsapp"></i> Share
+            </a>
             <form method="POST" action="/orders/<?= $order['id']; ?>/delete" style="display:inline;" onsubmit="return confirm('Delete this order? This will restore stock for all items.');">
                 <button type="submit" class="btn btn-outline-danger">
                     <i class="fas fa-trash"></i> Delete
