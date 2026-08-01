@@ -294,13 +294,6 @@ class OrderController extends Controller
         $order = $orderModel->find($id);
         if (!$order) $this->abort(404, 'Order not found');
 
-        $blockedStatuses = ['delivered', 'cancelled', 'on_hold'];
-        if (in_array($order['delivery_status'], $blockedStatuses)) {
-            $this->setFlash('error', 'Orders with status "' . ucfirst(str_replace('_', ' ', $order['delivery_status'])) . '" cannot be edited.');
-            $this->redirect("/orders/{$id}");
-            return;
-        }
-
         $variantModel  = new ProductVariant();
         $variants      = $variantModel->getAllWithProduct();
         $itemModel     = new OrderItem();
@@ -359,13 +352,6 @@ class OrderController extends Controller
         $orderModel = new Order();
         $order = $orderModel->find($id);
         if (!$order) $this->abort(404, 'Order not found');
-
-        $blockedStatuses = ['delivered', 'cancelled', 'on_hold'];
-        if (in_array($order['delivery_status'], $blockedStatuses)) {
-            $this->setFlash('error', 'This order cannot be edited.');
-            $this->redirect("/orders/{$id}");
-            return;
-        }
 
         $customerName    = $_POST['customer_name'] ?? '';
         $customerEmail   = $_POST['customer_email'] ?? '';

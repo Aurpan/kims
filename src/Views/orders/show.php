@@ -12,11 +12,10 @@
             <a href="/orders/exchange/<?= $order['id']; ?>" class="btn btn-outline-primary">
                 <i class="fas fa-exchange-alt"></i> Exchange
             </a>
-            <?php elseif (!in_array($order['delivery_status'], ['cancelled', 'on_hold'])): ?>
+            <?php endif; ?>
             <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-edit"></i> Edit
             </a>
-            <?php endif; ?>
             <form method="POST" action="/orders/<?= $order['id']; ?>/delete" style="display:inline;" onsubmit="return confirm('Delete this order? This will restore stock for all items.');">
                 <button type="submit" class="btn btn-outline-danger">
                     <i class="fas fa-trash"></i> Delete

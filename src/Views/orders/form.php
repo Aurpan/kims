@@ -104,7 +104,7 @@ foreach ($uniqueProducts as $pid => $pname) {
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Payment Method *</label>
-                                    <select name="payment_method" class="form-select" required>
+                                    <select name="payment_method" id="paymentMethod" class="form-select" required>
                                         <option value="cod" <?= ($order['payment_method'] ?? $old['payment_method'] ?? '') === 'cod' ? 'selected' : ''; ?>>Cash on Delivery (CoD)</option>
                                         <option value="bkash" <?= ($order['payment_method'] ?? $old['payment_method'] ?? '') === 'bkash' ? 'selected' : ''; ?>>Bkash</option>
                                         <option value="bank" <?= ($order['payment_method'] ?? $old['payment_method'] ?? '') === 'bank' ? 'selected' : ''; ?>>Bank Transfer</option>
@@ -114,7 +114,7 @@ foreach ($uniqueProducts as $pid => $pname) {
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Payment Status *</label>
-                                    <select name="payment_status" class="form-select" required>
+                                    <select name="payment_status" id="paymentStatus" class="form-select" required>
                                         <option value="unpaid" <?= ($order['payment_status'] ?? $old['payment_status'] ?? '') === 'unpaid' ? 'selected' : ''; ?>>Unpaid</option>
                                         <option value="paid" <?= ($order['payment_status'] ?? $old['payment_status'] ?? '') === 'paid' ? 'selected' : ''; ?>>Paid</option>
                                     </select>
@@ -459,6 +459,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         deliveryStatusSelect.addEventListener('change', togglePickupNameField);
         togglePickupNameField();
+
+        // COD orders are paid in cash on delivery, so mark them paid automatically
+        // once delivered. Still just sets the select, so the user can change it back.
+        const paymentMethodSelect = document.getElementById('paymentMethod');
+        const paymentStatusSelect = document.getElementById('paymentStatus');
+        function autoMarkCodPaidOnDelivery() {
+            if (deliveryStatusSelect.value === 'delivered' && paymentMethodSelect.value === 'cod') {
+                paymentStatusSelect.value = 'paid';
+            }
+        }
+        deliveryStatusSelect.addEventListener('change', autoMarkCodPaidOnDelivery);
     }
 
     <?php if ($order && !empty($existingItems)): ?>

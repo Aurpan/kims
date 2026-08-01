@@ -119,7 +119,7 @@ class ReportController extends Controller
 
         $variantModel = new ProductVariant();
         $lowStockVariants = $variantModel->getLowStock(10);
-        $allVariants = $variantModel->all();
+        $allVariants = $variantModel->getAllWithProduct();
 
         $totalInventoryValue = 0;
         $totalUnits = 0;
@@ -132,6 +132,7 @@ class ReportController extends Controller
         $this->render('reports/inventory', [
             'page_title' => 'Inventory Report',
             'lowStockVariants' => $lowStockVariants,
+            'allVariants' => $allVariants,
             'totalUnits' => $totalUnits,
             'totalInventoryValue' => $totalInventoryValue,
             'lowStockCount' => count($lowStockVariants)
