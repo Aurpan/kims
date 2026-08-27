@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <style>
-    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; }
-    h1 { font-size: 20px; margin: 0 0 4px; }
+    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; padding-bottom: 90px; }
+    h1 { font-size: 16px; margin: 0 0 4px; letter-spacing: 1px; }
     .muted { color: #666; }
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     th, td { padding: 6px 8px; border-bottom: 1px solid #ddd; text-align: left; }
@@ -20,7 +20,7 @@
     .totals td { border: none; padding: 4px 8px; }
     .totals .grand { font-weight: bold; font-size: 14px; border-top: 2px solid #333; }
     .extra { color: #555; font-size: 10px; }
-    .footer { margin-top: 40px; border-top: 1px solid #ddd; padding-top: 12px; font-size: 10px; }
+    .footer { position: fixed; bottom: 0; left: 0; width: 100%; border-top: 1px solid #ddd; padding-top: 12px; font-size: 10px; }
     .footer td { border: none; padding: 2px 8px; }
 </style>
 </head>
@@ -32,7 +32,7 @@
 
     <div class="header">
         <div class="left">
-            <h1><?= htmlspecialchars(APP_NAME); ?></h1>
+            <h1>KITZOHOLIC</h1>
             <div class="muted">Invoice</div>
         </div>
         <div class="right">
