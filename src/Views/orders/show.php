@@ -16,6 +16,9 @@
             <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-edit"></i> Edit
             </a>
+            <a href="/orders/<?= $order['id']; ?>/invoice" class="btn btn-outline-primary">
+                <i class="fas fa-file-pdf"></i> Invoice
+            </a>
             <?php
                 $waLines = [
                     'Order ID: ' . str_replace('ORD-', '', $order['order_number']),

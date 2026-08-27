@@ -6,6 +6,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class OrderController extends Controller
 {
@@ -282,6 +284,45 @@ class OrderController extends Controller
             'hasStockIssue' => $hasStockIssue,
             'flash'         => $this->getFlash(),
         ]);
+    }
+
+    public function invoice(): void
+    {
+        Auth::requireLogin();
+
+        $id = (int) ($_GET['id'] ?? 0);
+        if ($id <= 0) $this->abort(404, 'Order not found');
+
+        $orderModel = new Order();
+        $order = $orderModel->find($id);
+        if (!$order) $this->abort(404, 'Order not found');
+
+        $itemModel = new OrderItem();
+        $items     = $itemModel->getByOrder($id);
+
+        $deliveryCharge = (float) ($order['delivery_charge'] ?? 0);
+        $itemsSubtotal  = (float) $order['total_amount'] - $deliveryCharge;
+
+        $this->data = [];
+        ob_start();
+        $this->render('orders/invoice', [
+            'order'          => $order,
+            'items'          => $items,
+            'itemsSubtotal'  => $itemsSubtotal,
+            'deliveryCharge' => $deliveryCharge,
+        ]);
+        $html = ob_get_clean();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', false);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $orderNumber = str_replace('ORD-', '', $order['order_number']);
+        $dompdf->stream("invoice-{$orderNumber}.pdf", ['Attachment' => true]);
+        exit;
     }
 
     public function edit(): void

@@ -4,6 +4,7 @@ session_start();
 
 // Load configuration
 require_once '../config/config.php';
+require_once '../vendor/autoload.php';
 
 define('PUBLIC_PATH', __DIR__);
 
@@ -73,6 +74,7 @@ $router->get('orders', 'OrderController@list');
 $router->get('orders/create', 'OrderController@create');
 $router->post('orders', 'OrderController@store');
 $router->get('orders/{id}', 'OrderController@show');
+$router->get('orders/{id}/invoice', 'OrderController@invoice');
 $router->get('orders/edit/{id}', 'OrderController@edit');
 $router->post('orders/update/{id}', 'OrderController@update');
 $router->post('orders/{id}/status', 'OrderController@updateStatus');
