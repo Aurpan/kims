@@ -20,6 +20,8 @@
     .totals td { border: none; padding: 4px 8px; }
     .totals .grand { font-weight: bold; font-size: 14px; border-top: 2px solid #333; }
     .extra { color: #555; font-size: 10px; }
+    .footer { margin-top: 40px; border-top: 1px solid #ddd; padding-top: 12px; font-size: 10px; }
+    .footer td { border: none; padding: 2px 8px; }
 </style>
 </head>
 <body>
@@ -49,10 +51,7 @@
                 <?= nl2br(htmlspecialchars($order['delivery_address'])); ?>
             </td>
             <td style="border:none; width:50%; vertical-align:top;">
-                <strong>Payment</strong><br>
-                Method: <?= htmlspecialchars(['cod' => 'Cash on Delivery', 'bkash' => 'Bkash', 'bank' => 'Bank Transfer'][$order['payment_method']] ?? $order['payment_method']); ?><br>
-                Status: <?= ucfirst(htmlspecialchars($order['payment_status'])); ?><br>
-                Delivery Status: <?= ucfirst(str_replace('_', ' ', htmlspecialchars($order['delivery_status']))); ?>
+                <strong>Payment Method:</strong> <?= htmlspecialchars(['cod' => 'Cash on Delivery', 'bkash' => 'Bkash', 'bank' => 'Bank Transfer'][$order['payment_method']] ?? $order['payment_method']); ?>
             </td>
         </tr>
     </table>
@@ -73,14 +72,11 @@
                     <td>
                         <?= htmlspecialchars($item['product_name']); ?>
                         <?php if (!empty($item['is_return'])): ?> (Returned)<?php endif; ?>
-                        <?php if (!empty($item['patches_extra']) && $item['patches_extra'] > 0): ?>
-                            <div class="extra">WC Patches +<?= number_format($item['patches_extra'], 2); ?></div>
+                        <?php if (!empty($item['kit_name']) || !empty($item['kit_number'])): ?>
+                            <div class="extra">Name-Kit: <?= htmlspecialchars($item['kit_name']); ?> #<?= htmlspecialchars($item['kit_number']); ?></div>
                         <?php endif; ?>
-                        <?php if (!empty($item['kit_name']) || !empty($item['kit_number']) || (!empty($item['namekit_extra']) && $item['namekit_extra'] > 0)): ?>
-                            <div class="extra">
-                                Name-Kit<?= !empty($item['kit_name']) ? ': ' . htmlspecialchars($item['kit_name']) : ''; ?><?= !empty($item['kit_number']) ? ' #' . htmlspecialchars($item['kit_number']) : ''; ?>
-                                <?= (!empty($item['namekit_extra']) && $item['namekit_extra'] > 0) ? ' +' . number_format($item['namekit_extra'], 2) : ''; ?>
-                            </div>
+                        <?php if (!empty($item['patches_extra']) && $item['patches_extra'] > 0): ?>
+                            <div class="extra">Patches</div>
                         <?php endif; ?>
                     </td>
                     <td><?= htmlspecialchars($item['size']); ?></td>
@@ -113,5 +109,26 @@
             <p><?= nl2br(htmlspecialchars($order['notes'])); ?></p>
         </div>
     <?php endif; ?>
+
+    <table class="footer">
+        <tr>
+            <td style="border:none; width:50%; vertical-align:top;">
+                <strong>Contact Us</strong><br>
+                Email: kitzoholicbd@gmail.com<br>
+                Contact Number: 01913551105<br>
+                Facebook: www.facebook.com/kitzoholicbd
+            </td>
+            <td style="border:none; width:50%; vertical-align:top;">
+                <strong>Payment Options</strong><br>
+                BKash: 01680762256 (Send Money)<br>
+                Bank Details:<br>
+                Bank Name: Eastern Bank Ltd<br>
+                Acc No: 1091510002206<br>
+                Acc Name: Aurpan Dash<br>
+                Branch: Banasree<br>
+                Routing: 095260721
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
