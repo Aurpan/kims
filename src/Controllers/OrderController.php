@@ -234,6 +234,7 @@ class OrderController extends Controller
 
             $orderModel->update($orderId, [
                 'total_amount'    => $totalAmount + $deliveryCharge,
+                'delivery_charge' => $deliveryCharge,
                 'delivery_status' => $deliveryStatus,
                 'has_stock_issue' => (int) $hasStockIssue,
             ]);
@@ -477,6 +478,7 @@ class OrderController extends Controller
                 'delivery_status'    => $deliveryStatus,
                 'pickup_person_name' => $pickupPersonName,
                 'total_amount'       => $totalAmount + $deliveryCharge,
+                'delivery_charge'    => $deliveryCharge,
                 'has_stock_issue'    => (int) $hasStockIssue,
             ]);
 
@@ -724,7 +726,10 @@ class OrderController extends Controller
                 $variantModel->updateStock($variantId, -$qty);
             }
 
-            $orderModel->update($exchangeOrderId, ['total_amount' => $totalAmount + $deliveryCharge]);
+            $orderModel->update($exchangeOrderId, [
+                'total_amount'    => $totalAmount + $deliveryCharge,
+                'delivery_charge' => $deliveryCharge,
+            ]);
 
             $db->commit();
 
