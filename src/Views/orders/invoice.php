@@ -120,12 +120,12 @@
             </td>
             <td style="border:none; width:50%; vertical-align:top;">
                 <strong>Payment Options</strong><br>
-                BKash: 01680762256 (Send Money)<br>
-                Bank Details:<br>
-                Bank Name: Eastern Bank Ltd<br>
+                <strong>BKash: 01680762256 (Send Money)</strong><br>
+                <strong>Bank Details:</strong><br>
+                Eastern Bank Ltd<br>
                 Acc No: 1091510002206<br>
                 Acc Name: Aurpan Dash<br>
-                Branch: Banasree<br>
+                Branch: Banasree (Dhaka South)<br>
                 Routing: 095260721
             </td>
         </tr>
