@@ -14,22 +14,23 @@
     .header .left { float: left; }
     .header .right { float: right; text-align: right; }
     .logo-corner { position: fixed; top: 0; right: 0; width: 70px; }
-    .watermark-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; z-index: -1; }
+    .watermark-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; }
     .watermark { width: 320px; margin-top: 380px; opacity: 0.08; }
     .totals { width: 260px; margin-left: auto; margin-top: 16px; }
     .totals td { border: none; padding: 4px 8px; }
     .totals .grand { font-weight: bold; font-size: 14px; border-top: 2px solid #333; }
     .extra { color: #555; font-size: 10px; }
     .footer { position: fixed; bottom: 0; left: 0; width: 100%; border-top: 1px solid #ddd; padding-top: 12px; font-size: 10px; }
-    .footer td { border: none; padding: 2px 8px; }
+    .footer .left, .footer .right { display: inline-block; width: 48%; vertical-align: top; }
+    .footer .left { text-align: left; }
+    .footer .right { text-align: right; }
+    .contact-icon { width: 10px; height: 10px; }
+    .footer a { color: #222; text-decoration: none; }
+    .bill-to-row { margin-top: 16px; }
+    .bill-to-row .left, .bill-to-row .right { display: inline-block; width: 48%; vertical-align: top; text-align: left; }
 </style>
 </head>
 <body>
-    <img class="logo-corner" src="<?= $logoDataUri; ?>">
-    <div class="watermark-wrap">
-        <img class="watermark" src="<?= $logoDataUri; ?>">
-    </div>
-
     <div class="header">
         <div class="left">
             <h1>KITZOHOLIC</h1>
@@ -40,21 +41,20 @@
             <div><strong>Date:</strong> <?= date('M d, Y', strtotime($order['created_at'])); ?></div>
         </div>
     </div>
+    <div style="clear:both;"></div>
 
-    <table style="width:100%; border:none; margin-top:0;">
-        <tr>
-            <td style="border:none; width:50%; vertical-align:top;">
-                <strong>Bill To</strong><br>
-                <?= htmlspecialchars($order['customer_name']); ?><br>
-                <?= htmlspecialchars($order['customer_phone']); ?><br>
-                <?php if (!empty($order['customer_email'])): ?><?= htmlspecialchars($order['customer_email']); ?><br><?php endif; ?>
-                <?= nl2br(htmlspecialchars($order['delivery_address'])); ?>
-            </td>
-            <td style="border:none; width:50%; vertical-align:top;">
-                <strong>Payment Method:</strong> <?= htmlspecialchars(['cod' => 'Cash on Delivery', 'bkash' => 'Bkash', 'bank' => 'Bank Transfer'][$order['payment_method']] ?? $order['payment_method']); ?>
-            </td>
-        </tr>
-    </table>
+    <div class="bill-to-row">
+        <div class="left">
+            <div><strong>Bill To</strong></div>
+            <div><?= htmlspecialchars($order['customer_name']); ?></div>
+            <div><?= htmlspecialchars($order['customer_phone']); ?></div>
+            <?php if (!empty($order['customer_email'])): ?><div><?= htmlspecialchars($order['customer_email']); ?></div><?php endif; ?>
+            <div><?= nl2br(htmlspecialchars($order['delivery_address'])); ?></div>
+        </div>
+        <div class="right">
+            <strong>Payment Method:</strong> <?= htmlspecialchars(['cod' => 'Cash on Delivery', 'bkash' => 'Bkash', 'bank' => 'Bank Transfer'][$order['payment_method']] ?? $order['payment_method']); ?>
+        </div>
+    </div>
 
     <table>
         <thead>
@@ -110,25 +110,33 @@
         </div>
     <?php endif; ?>
 
-    <table class="footer">
-        <tr>
-            <td style="border:none; width:50%; vertical-align:top;">
-                <strong>Contact Us</strong><br>
-                Email: kitzoholicbd@gmail.com<br>
-                Contact Number: 01913551105<br>
-                Facebook: www.facebook.com/kitzoholicbd
-            </td>
-            <td style="border:none; width:50%; vertical-align:top;">
-                <strong>Payment Options</strong><br>
-                <strong>BKash: 01680762256 (Send Money)</strong><br>
-                <strong>Bank Details:</strong><br>
-                Eastern Bank Ltd<br>
-                Acc No: 1091510002206<br>
-                Acc Name: Aurpan Dash<br>
-                Branch: Banasree (Dhaka South)<br>
-                Routing: 095260721
-            </td>
-        </tr>
-    </table>
+    <?php
+        $iconEmail = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#333"><path d="M2 4h20v16H2V4zm2 2.24V6h16v.24l-8 5.99-8-5.99zM4 8.51V18h16V8.51l-7.4 5.55a1 1 0 0 1-1.2 0L4 8.51z"/></svg>');
+        $iconPhone = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#333"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.4 21 3 13.6 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z"/></svg>');
+        $iconFacebook = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#333"><path d="M22 12a10 10 0 1 0-11.6 9.88v-6.99H7.9V12h2.5V9.8c0-2.47 1.47-3.84 3.72-3.84 1.08 0 2.21.19 2.21.19v2.43h-1.25c-1.23 0-1.61.76-1.61 1.55V12h2.74l-.44 2.89h-2.3v6.99A10 10 0 0 0 22 12z"/></svg>');
+    ?>
+    <div class="footer">
+        <div class="left">
+            <div><strong>Payment Options</strong></div>
+            <div><strong>BKash: 01680762256 (Send Money)</strong></div>
+            <div><strong>Bank Details:</strong></div>
+            <div>Eastern Bank Ltd</div>
+            <div>Acc No: 1091510002206</div>
+            <div>Acc Name: Aurpan Dash</div>
+            <div>Branch: Banasree (Dhaka South)</div>
+            <div>Routing: 095260721</div>
+        </div>
+        <div class="right">
+            <div><strong>Contact Us</strong></div>
+            <div><img class="contact-icon" src="<?= $iconEmail; ?>"> kitzoholicbd@gmail.com</div>
+            <div><img class="contact-icon" src="<?= $iconPhone; ?>"> 01913551105</div>
+            <div><img class="contact-icon" src="<?= $iconFacebook; ?>"> <a href="https://www.facebook.com/kitzoholicbd">kitzoholicbd</a></div>
+        </div>
+    </div>
+
+    <img class="logo-corner" src="<?= $logoDataUri; ?>">
+    <div class="watermark-wrap">
+        <img class="watermark" src="<?= $logoDataUri; ?>">
+    </div>
 </body>
 </html>
