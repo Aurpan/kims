@@ -45,6 +45,7 @@ try {
     $migrations = [
         'migrations/001_initial_schema.sql',
         'migrations/002_all_updates.sql',
+        'migrations/003_add_delivery_charge.sql',
     ];
 
     // ============================================
