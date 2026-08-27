@@ -303,6 +303,9 @@ class OrderController extends Controller
         $deliveryCharge = (float) ($order['delivery_charge'] ?? 0);
         $itemsSubtotal  = (float) $order['total_amount'] - $deliveryCharge;
 
+        $logoPath = __DIR__ . '/../../public/images/logo.png';
+        $logoDataUri = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+
         $this->data = [];
         ob_start();
         $this->render('orders/invoice', [
@@ -310,6 +313,7 @@ class OrderController extends Controller
             'items'          => $items,
             'itemsSubtotal'  => $itemsSubtotal,
             'deliveryCharge' => $deliveryCharge,
+            'logoDataUri'    => $logoDataUri,
         ]);
         $html = ob_get_clean();
 

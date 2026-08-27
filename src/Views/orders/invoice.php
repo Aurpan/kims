@@ -13,6 +13,9 @@
     .header { overflow: hidden; margin-bottom: 20px; }
     .header .left { float: left; }
     .header .right { float: right; text-align: right; }
+    .logo-corner { position: fixed; top: 0; right: 0; width: 70px; }
+    .watermark-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; z-index: -1; }
+    .watermark { width: 320px; margin-top: 380px; opacity: 0.08; }
     .totals { width: 260px; margin-left: auto; margin-top: 16px; }
     .totals td { border: none; padding: 4px 8px; }
     .totals .grand { font-weight: bold; font-size: 14px; border-top: 2px solid #333; }
@@ -20,6 +23,11 @@
 </style>
 </head>
 <body>
+    <img class="logo-corner" src="<?= $logoDataUri; ?>">
+    <div class="watermark-wrap">
+        <img class="watermark" src="<?= $logoDataUri; ?>">
+    </div>
+
     <div class="header">
         <div class="left">
             <h1><?= htmlspecialchars(APP_NAME); ?></h1>
