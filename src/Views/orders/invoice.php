@@ -3,19 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <style>
-    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; padding-bottom: 90px; }
-    h1 { font-size: 16px; margin: 0 0 4px; letter-spacing: 1px; }
+    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #222; }
+    #invoice-content { padding: 28px 32px 90px; }
+    h1 { font-size: 32px; margin: 0 0 4px; letter-spacing: 1px; }
     .muted { color: #666; }
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     th, td { padding: 6px 8px; border-bottom: 1px solid #ddd; text-align: left; }
     th { background: #f5f5f5; }
     .text-right { text-align: right; }
-    .header { overflow: hidden; margin-bottom: 20px; }
-    .header .left { float: left; }
-    .header .right { float: right; text-align: right; }
-    .logo-corner { position: fixed; top: 0; right: 0; width: 70px; }
+    .logo-corner { position: fixed; top: 20px; left: 20px; width: 55px; }
+    .header-brand { text-align: center; margin-bottom: 12px; }
+    .header-brand .muted { font-size: 24px; }
+    .header-meta { text-align: right; margin-bottom: 4px; }
     .watermark-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; text-align: center; }
     .watermark { width: 320px; margin-top: 380px; opacity: 0.08; }
+    /* ponytail: PDF watermark centering assumes a single A4 page (fixed 380px offset); revisit if invoices ever span multiple pages */
     .totals { width: 260px; margin-left: auto; margin-top: 16px; }
     .totals td { border: none; padding: 4px 8px; }
     .totals .grand { font-weight: bold; font-size: 14px; border-top: 2px solid #333; }
@@ -28,20 +30,53 @@
     .footer a { color: #222; text-decoration: none; }
     .bill-to-row { margin-top: 16px; }
     .bill-to-row .left, .bill-to-row .right { display: inline-block; width: 48%; vertical-align: top; text-align: left; }
+    <?php if (!empty($imageExport)): ?>
+    /* Image export is a single A4-sized image (same page size as the PDF), rendered
+       off-screen (not display:none, so it still lays out and is capturable by html2canvas)
+       while the visible page just shows a status message.
+       ponytail: min-height (not a hard height + overflow:hidden) lets a long item list grow
+       the image taller than one A4 page rather than truncating content — the trade-off is
+       the output then isn't exactly A4-proportioned for very long orders. */
+    #invoice-content {
+        position: fixed; top: 0; left: -99999px;
+        width: 794px; min-height: 1123px; box-sizing: border-box;
+        padding-top: 60px; padding-left: 60px; padding-right: 60px;
+        /* bottom = 60px outer margin (matching top/left/right) + ~100px reserved so the
+           footer, absolutely positioned 60px above the container's edge, never overlaps
+           the in-flow content (totals table) above it. */
+        padding-bottom: 160px;
+    }
+    /* position:fixed always escapes to the real viewport regardless of ancestors, so the
+       logo must switch to absolute (relative to #invoice-content) to move off-screen with it. */
+    .logo-corner { position: absolute; }
+    .watermark-wrap {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: auto; height: auto;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .watermark { margin-top: 0; }
+    /* Pinned to the bottom of #invoice-content (which has a real min-height) instead of
+       document flow, so the footer always sits at the bottom of the page like in the PDF. */
+    .footer {
+        position: absolute; bottom: 60px; left: 0; width: 100%; box-sizing: border-box;
+        padding-left: 60px; padding-right: 60px;
+    }
+    <?php endif; ?>
 </style>
 </head>
 <body>
-    <div class="header">
-        <div class="left">
-            <h1>KITZOHOLIC</h1>
-            <div class="muted">Invoice</div>
-        </div>
-        <div class="right">
-            <div><strong>Invoice #:</strong> <?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?></div>
-            <div><strong>Date:</strong> <?= date('M d, Y', strtotime($order['created_at'])); ?></div>
-        </div>
+    <?php if (!empty($imageExport)): ?>
+    <div style="padding: 60px; text-align: center; font-family: sans-serif; color: #555;">Preparing your invoice image for download&hellip;</div>
+    <?php endif; ?>
+    <div id="invoice-content">
+    <img class="logo-corner" src="<?= $logoDataUri; ?>">
+    <div class="header-brand">
+        <h1>KITZOHOLIC</h1>
+        <div class="muted">Invoice</div>
     </div>
-    <div style="clear:both;"></div>
+    <div class="header-meta">
+        <div><strong>Invoice #:</strong> <?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?></div>
+        <div><strong>Date:</strong> <?= date('M d, Y', strtotime($order['created_at'])); ?></div>
+    </div>
 
     <div class="bill-to-row">
         <div class="left">
@@ -103,13 +138,6 @@
         </tr>
     </table>
 
-    <?php if (!empty($order['notes'])): ?>
-        <div style="margin-top: 24px;">
-            <strong>Notes</strong>
-            <p><?= nl2br(htmlspecialchars($order['notes'])); ?></p>
-        </div>
-    <?php endif; ?>
-
     <?php
         $iconEmail = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#333"><path d="M2 4h20v16H2V4zm2 2.24V6h16v.24l-8 5.99-8-5.99zM4 8.51V18h16V8.51l-7.4 5.55a1 1 0 0 1-1.2 0L4 8.51z"/></svg>');
         $iconPhone = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#333"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.4 21 3 13.6 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2z"/></svg>');
@@ -134,9 +162,29 @@
         </div>
     </div>
 
-    <img class="logo-corner" src="<?= $logoDataUri; ?>">
     <div class="watermark-wrap">
         <img class="watermark" src="<?= $logoDataUri; ?>">
     </div>
+    </div>
+
+    <?php if (!empty($imageExport)): ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        window.addEventListener('load', function () {
+            html2canvas(document.getElementById('invoice-content'), { scale: 2, useCORS: true }).then(function (canvas) {
+                var link = document.createElement('a');
+                link.download = '<?= addslashes($downloadName); ?>.jpg';
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.click();
+
+                // When loaded inside the hidden iframe used by the Order Details page,
+                // let the parent page know the download fired so it can stop the button spinner.
+                if (window.parent !== window) {
+                    window.parent.postMessage({ type: 'kims-invoice-image-ready' }, window.location.origin);
+                }
+            });
+        });
+    </script>
+    <?php endif; ?>
 </body>
 </html>

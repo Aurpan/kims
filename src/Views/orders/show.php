@@ -16,9 +16,15 @@
             <a href="/orders/edit/<?= $order['id']; ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-edit"></i> Edit
             </a>
-            <a href="/orders/<?= $order['id']; ?>/invoice" class="btn btn-outline-primary">
-                <i class="fas fa-file-pdf"></i> Invoice
-            </a>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-invoice"></i> Invoice
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><button type="button" class="dropdown-item" onclick="downloadInvoice(<?= $order['id']; ?>, 'pdf', this)"><i class="fas fa-file-pdf me-2"></i>PDF</button></li>
+                    <li><button type="button" class="dropdown-item" onclick="downloadInvoice(<?= $order['id']; ?>, 'image', this)"><i class="fas fa-file-image me-2"></i>Image</button></li>
+                </ul>
+            </div>
             <?php
                 $waLines = [
                     'Order ID: ' . str_replace('ORD-', '', $order['order_number']),
@@ -399,5 +405,69 @@
         margin-left: 0;
     }
 </style>
+
+<script>
+function downloadInvoice(orderId, format, btn) {
+    if (format === 'pdf') {
+        downloadInvoicePdf(orderId, btn);
+    } else {
+        downloadInvoiceImage(orderId, btn);
+    }
+}
+
+function setButtonLoading(btn, loading, originalHtml) {
+    if (loading) {
+        btn.dataset.originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Preparing...';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml ?? btn.dataset.originalHtml;
+    }
+}
+
+function triggerDownload(href, filename) {
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+async function downloadInvoicePdf(orderId, btn) {
+    setButtonLoading(btn, true);
+    try {
+        const res = await fetch(`/orders/${orderId}/invoice`);
+        const blob = await res.blob();
+        const match = (res.headers.get('Content-Disposition') || '').match(/filename="?([^"]+)"?/);
+        const filename = match ? match[1] : `invoice-${orderId}.pdf`;
+        const url = URL.createObjectURL(blob);
+        triggerDownload(url, filename);
+        URL.revokeObjectURL(url);
+    } finally {
+        setButtonLoading(btn, false);
+    }
+}
+
+function downloadInvoiceImage(orderId, btn) {
+    setButtonLoading(btn, true);
+
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed; top:0; left:-99999px; width:1px; height:1px; border:0;';
+
+    function onMessage(e) {
+        if (e.origin === window.location.origin && e.data && e.data.type === 'kims-invoice-image-ready') {
+            window.removeEventListener('message', onMessage);
+            setButtonLoading(btn, false);
+            iframe.remove();
+        }
+    }
+    window.addEventListener('message', onMessage);
+
+    iframe.src = `/orders/${orderId}/invoice?format=image`;
+    document.body.appendChild(iframe);
+}
+</script>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

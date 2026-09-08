@@ -306,6 +306,9 @@ class OrderController extends Controller
         $logoPath = __DIR__ . '/../../public/images/logo.png';
         $logoDataUri = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
 
+        $format = $_GET['format'] ?? 'pdf';
+        $orderNumber = str_replace('ORD-', '', $order['order_number']);
+
         $this->data = [];
         ob_start();
         $this->render('orders/invoice', [
@@ -314,8 +317,15 @@ class OrderController extends Controller
             'itemsSubtotal'  => $itemsSubtotal,
             'deliveryCharge' => $deliveryCharge,
             'logoDataUri'    => $logoDataUri,
+            'imageExport'    => $format === 'image',
+            'downloadName'   => "invoice-{$orderNumber}",
         ]);
         $html = ob_get_clean();
+
+        if ($format === 'image') {
+            echo $html;
+            exit;
+        }
 
         $options = new Options();
         $options->set('isRemoteEnabled', false);
@@ -324,7 +334,6 @@ class OrderController extends Controller
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        $orderNumber = str_replace('ORD-', '', $order['order_number']);
         $dompdf->stream("invoice-{$orderNumber}.pdf", ['Attachment' => true]);
         exit;
     }
