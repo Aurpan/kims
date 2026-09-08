@@ -33,6 +33,7 @@
                     if (!empty($item['kit_name'])) $extras[] = $item['kit_name'];
                     if (!empty($item['kit_number'])) $extras[] = $item['kit_number'];
                     if (!empty($item['patches_extra']) && $item['patches_extra'] > 0) $extras[] = 'Patch';
+                    $extras[] = $item['quantity'] . 'Pcs';
 
                     $line = '- ' . $item['product_name'] . ' (' . $item['size'] . ')';
                     if ($extras) $line .= ' --> ' . implode(' - ', $extras);

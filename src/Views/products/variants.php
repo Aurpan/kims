@@ -201,7 +201,7 @@
                             <div class="mb-3">
                                 <label for="stock" class="form-label">Initial Stock *</label>
                                 <input type="number" class="form-control <?= isset($errors['stock']) ? 'is-invalid' : ''; ?>"
-                                       id="stock" name="stock" required
+                                       id="stock" name="stock" min="0" required
                                        value="<?= htmlspecialchars($old['stock'] ?? '0'); ?>"
                                        placeholder="0">
                                 <?php if (isset($errors['stock'])): ?>

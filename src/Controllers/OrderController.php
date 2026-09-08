@@ -16,7 +16,7 @@ class OrderController extends Controller
         Auth::requireLogin();
 
         if (!isset($_GET['status_filter_touched'])) {
-            $deliveryStatus = ['pending', 'waiting_for_print', 'package_ready'];
+            $deliveryStatus = ['pending', 'waiting_for_print', 'package_ready', 'courier_pickup', 'personal_pickup', 'in_transit', 'delivered', 'on_hold', 'cancelled', 'returned'];
         } else {
             $deliveryStatus = $_GET['delivery_status'] ?? [];
             if (!is_array($deliveryStatus)) {

@@ -23,12 +23,13 @@ class AuthController extends Controller
 
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
+        $remember = !empty($_POST['remember']);
 
         $userModel = new User();
         $user = $userModel->findByEmail($email);
 
         if ($user && Auth::verifyPassword($password, $user['password_hash'])) {
-            Auth::login($user['id'], $user['email'], $user['name']);
+            Auth::login($user['id'], $user['email'], $user['name'], $remember);
             $userModel->updateLastLogin($user['id']);
 
             $this->setFlash('success', 'Login successful!');

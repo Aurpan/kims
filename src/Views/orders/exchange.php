@@ -14,6 +14,15 @@ foreach ($uniqueProducts as $pid => $pname) {
 }
 ?>
 
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;">
+    <div id="exchange-toast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="exchange-toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <div class="py-4">
     <h1 class="ps-2">Exchange Order</h1>
     <p class="text-muted ps-2">Processing exchange for Order <strong>#<?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?></strong></p>
@@ -248,6 +257,12 @@ function toggleAll(checkbox) {
     document.querySelectorAll('.item-check').forEach(c => c.checked = checkbox.checked);
 }
 
+function showToast(message) {
+    const toastEl = document.getElementById('exchange-toast');
+    document.getElementById('exchange-toast-body').textContent = message;
+    bootstrap.Toast.getOrCreateInstance(toastEl).show();
+}
+
 function addToExchangeList() {
     const checked = document.querySelectorAll('.item-check:checked');
     if (!checked.length) {
@@ -255,6 +270,7 @@ function addToExchangeList() {
         return;
     }
 
+    let added = 0;
     checked.forEach(cb => {
         const variantId = parseInt(cb.dataset.variantId);
         if (returnItems.find(r => r.variantId === variantId)) return; // skip duplicates
@@ -267,12 +283,14 @@ function addToExchangeList() {
             quantity:    parseInt(cb.dataset.quantity),
             unitPrice:   parseFloat(cb.dataset.unitPrice)
         });
+        added++;
         cb.checked = false;
     });
 
     document.getElementById('selectAll').checked = false;
     renderReturnItems();
     syncReturnedSubtotal();
+    showToast(added + ' item(s) added to exchange list.');
 }
 
 function removeReturnItem(variantId) {

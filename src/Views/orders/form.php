@@ -246,7 +246,7 @@ function createRowHtml(idx) {
             </div>
             <div class="col-6 col-md-2">
                 <label class="form-label small text-muted mb-1">Unit Price (৳)</label>
-                <input type="number" name="unit_price[]" class="form-control unit-price-${idx}" value="0" step="1" min="0" onchange="updateRowTotal(${idx})">
+                <input type="number" name="unit_price[]" class="form-control unit-price-${idx}" value="0" step="1" onchange="updateRowTotal(${idx})">
             </div>
             <div class="col-2 col-md-1 d-flex align-items-end pb-1">
                 <button type="button" class="btn btn-link text-danger p-0" onclick="removeOrderItem(${idx})" title="Remove">

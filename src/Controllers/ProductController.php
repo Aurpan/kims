@@ -318,9 +318,13 @@ class ProductController extends Controller
             [
                 'size' => 'required|min:1|max:50',
                 'sku' => 'required|min:1|max:100',
-                'stock' => 'required|numeric'
+                'stock' => 'numeric'
             ]
         );
+
+        if ($stock === '' || (float) $stock < 0) {
+            $errors['stock'] = 'Stock must be zero or a positive number';
+        }
 
         $variantModel = new ProductVariant();
 
@@ -394,7 +398,7 @@ class ProductController extends Controller
             $this->abort(404, 'Variant not found');
         }
 
-        $stock = (int) ($_POST['stock'] ?? 0);
+        $stock = max(0, (int) ($_POST['stock'] ?? 0));
         $product_id = $variant['product_id'];
 
         $variantModel->setStock($variant_id, $stock);

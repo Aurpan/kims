@@ -8,12 +8,20 @@ class Auth
         return isset($_SESSION['user_id']);
     }
 
-    public static function login(int $userId, string $email, string $name): void
+    public static function login(int $userId, string $email, string $name, bool $remember = false): void
     {
         $_SESSION['user_id'] = $userId;
         $_SESSION['email'] = $email;
         $_SESSION['name'] = $name;
         $_SESSION['login_time'] = time();
+        $_SESSION['remember'] = $remember;
+
+        if ($remember) {
+            $lifetime = 30 * 24 * 60 * 60; // 30 days
+            ini_set('session.cookie_lifetime', (string) $lifetime);
+            session_regenerate_id(true);
+            setcookie(session_name(), session_id(), time() + $lifetime, '/');
+        }
     }
 
     public static function logout(): void
@@ -51,7 +59,7 @@ class Auth
 
     public static function checkSessionTimeout(): void
     {
-        $timeout = 3600; // 1 hour
+        $timeout = !empty($_SESSION['remember']) ? 30 * 24 * 60 * 60 : 3600; // 30 days if remembered, else 1 hour
         $loginTime = $_SESSION['login_time'] ?? 0;
 
         if (time() - $loginTime > $timeout) {

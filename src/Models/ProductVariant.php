@@ -7,7 +7,8 @@ class ProductVariant extends Model
 
     public function getByProduct(int $productId): array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE product_id = ? ORDER BY size";
+        $sql = "SELECT * FROM {$this->table} WHERE product_id = ?
+                ORDER BY FIELD(size, 'S','M','L','XL','2XL','3XL','4XL','5XL'), size";
         return $this->db->fetchAll($sql, [$productId]);
     }
 
@@ -72,7 +73,7 @@ class ProductVariant extends Model
         $sql = "SELECT pv.*, p.name as product_name, p.base_price FROM {$this->table} pv
                 JOIN products p ON pv.product_id = p.id
                 WHERE p.is_active = TRUE
-                ORDER BY p.name, pv.size";
+                ORDER BY p.name, FIELD(pv.size, 'S','M','L','XL','2XL','3XL','4XL','5XL'), pv.size";
         return $this->db->fetchAll($sql);
     }
 }
