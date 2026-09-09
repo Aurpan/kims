@@ -72,8 +72,8 @@ foreach ($uniqueProducts as $pid => $pname) {
                         <td><?= htmlspecialchars($item['product_name']); ?></td>
                         <td><?= htmlspecialchars($item['size']); ?></td>
                         <td class="text-center"><?= $item['quantity']; ?></td>
-                        <td class="text-end">৳<?= number_format($item['unit_price'], 2); ?></td>
-                        <td class="text-end">৳<?= number_format($item['line_total'], 2); ?></td>
+                        <td class="text-end">৳<?= number_format($item['unit_price'], 0); ?></td>
+                        <td class="text-end">৳<?= number_format($item['line_total'], 0); ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

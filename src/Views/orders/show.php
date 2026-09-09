@@ -5,7 +5,13 @@
     <div class="d-flex justify-content-between align-items-center mb-4 px-3 px-md-0">
         <div>
             <p class="text-muted small mb-0">Order Number</p>
-            <h1 class="mb-0"><?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?></h1>
+            <h1 class="mb-0">
+                <?= htmlspecialchars(str_replace('ORD-', '', $order['order_number'])); ?>
+                <button type="button" class="btn btn-link p-0 ms-1 align-baseline" title="Copy invoice number"
+                        onclick="navigator.clipboard.writeText('<?= addslashes(str_replace('ORD-', '', $order['order_number'])); ?>'); var i=this.querySelector('i'); i.className='fas fa-check text-success'; setTimeout(function(){ i.className='fas fa-copy'; }, 1200);">
+                    <i class="fas fa-copy" style="font-size: 0.8rem;"></i>
+                </button>
+            </h1>
         </div>
         <div class="d-flex gap-2">
             <?php if ($order['delivery_status'] === 'delivered'): ?>
@@ -46,7 +52,7 @@
                     $waLines[] = $line;
                 }
                 $waLines[] = '';
-                $waLines[] = 'Amount: ' . number_format($order['total_amount'], 2);
+                $waLines[] = 'Amount: ' . number_format($order['total_amount'], 0);
                 $waText = implode("\n", $waLines);
             ?>
             <a href="https://wa.me/?text=<?= rawurlencode($waText); ?>" target="_blank" class="btn btn-outline-success">
@@ -129,7 +135,7 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <p class="text-muted small mb-1">Total Amount</p>
-                            <h4 class="mb-0">৳<?= number_format($order['total_amount'], 2); ?></h4>
+                            <h4 class="mb-0">৳<?= number_format($order['total_amount'], 0); ?></h4>
                         </div>
                     </div>
                 </div>
@@ -238,21 +244,21 @@
                                     <td>
                                         <?= htmlspecialchars($item['product_name']); ?><?= $stockBadge; ?>
                                         <?php if (!empty($item['patches_extra']) && $item['patches_extra'] > 0): ?>
-                                            <br><span class="badge bg-secondary mt-1">WC Patches +৳<?= number_format($item['patches_extra'], 2); ?></span>
+                                            <br><span class="badge bg-secondary mt-1">WC Patches +৳<?= number_format($item['patches_extra'], 0); ?></span>
                                         <?php endif; ?>
                                         <?php if (!empty($item['kit_name']) || !empty($item['kit_number'])): ?>
                                             <br><span class="badge bg-info text-dark mt-1">
                                                 Name-Kit<?= !empty($item['kit_name']) ? ': ' . htmlspecialchars($item['kit_name']) : ''; ?><?= !empty($item['kit_number']) ? ' #' . htmlspecialchars($item['kit_number']) : ''; ?>
-                                                <?= (!empty($item['namekit_extra']) && $item['namekit_extra'] > 0) ? ' +৳' . number_format($item['namekit_extra'], 2) : ''; ?>
+                                                <?= (!empty($item['namekit_extra']) && $item['namekit_extra'] > 0) ? ' +৳' . number_format($item['namekit_extra'], 0) : ''; ?>
                                             </span>
                                         <?php elseif (!empty($item['namekit_extra']) && $item['namekit_extra'] > 0): ?>
-                                            <br><span class="badge bg-info text-dark mt-1">Name-Kit +৳<?= number_format($item['namekit_extra'], 2); ?></span>
+                                            <br><span class="badge bg-info text-dark mt-1">Name-Kit +৳<?= number_format($item['namekit_extra'], 0); ?></span>
                                         <?php endif; ?>
                                     </td>
                                     <td><?= htmlspecialchars($item['size']); ?></td>
                                     <td class="text-center"><?= $item['quantity']; ?></td>
-                                    <td class="text-end">৳<?= number_format($item['unit_price'], 2); ?></td>
-                                    <td class="text-end fw-bold">৳<?= number_format($item['line_total'], 2); ?></td>
+                                    <td class="text-end">৳<?= number_format($item['unit_price'], 0); ?></td>
+                                    <td class="text-end fw-bold">৳<?= number_format($item['line_total'], 0); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -268,12 +274,12 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Subtotal:</span>
-                                <span>৳<?= number_format($order['total_amount'], 2); ?></span>
+                                <span>৳<?= number_format($order['total_amount'], 0); ?></span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between">
                                 <span class="fw-bold">Total:</span>
-                                <h5 class="mb-0">৳<?= number_format($order['total_amount'], 2); ?></h5>
+                                <h5 class="mb-0">৳<?= number_format($order['total_amount'], 0); ?></h5>
                             </div>
                         </div>
                     </div>

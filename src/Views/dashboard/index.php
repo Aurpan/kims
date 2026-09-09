@@ -16,7 +16,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-1">Total Revenue</p>
-                            <h3 class="mb-0">৳<?= number_format($totalRevenue, 2); ?></h3>
+                            <h3 class="mb-0">৳<?= number_format($totalRevenue, 0); ?></h3>
                         </div>
                         <i class="fas fa-chart-line fa-2x text-primary opacity-50"></i>
                     </div>
@@ -30,7 +30,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-1">Monthly Revenue</p>
-                            <h3 class="mb-0">৳<?= number_format($monthlyRevenue, 2); ?></h3>
+                            <h3 class="mb-0">৳<?= number_format($monthlyRevenue, 0); ?></h3>
                         </div>
                         <i class="fas fa-calendar fa-2x text-info opacity-50"></i>
                     </div>
@@ -80,7 +80,7 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <p class="text-muted mb-1">Monthly Expenses</p>
-                                <h3 class="mb-0">৳<?= number_format($monthlyExpenses, 2); ?></h3>
+                                <h3 class="mb-0">৳<?= number_format($monthlyExpenses, 0); ?></h3>
                             </div>
                             <i class="fas fa-money-bill fa-2x text-secondary opacity-50"></i>
                         </div>
@@ -150,7 +150,7 @@
                                             </a>
                                         </td>
                                         <td><?= htmlspecialchars($order['customer_name']); ?></td>
-                                        <td class="fw-bold">৳<?= number_format($order['total_amount'], 2); ?></td>
+                                        <td class="fw-bold">৳<?= number_format($order['total_amount'], 0); ?></td>
                                         <td>
                                             <span class="badge bg-<?= $badgeClass; ?>">
                                                 <?= ucfirst(str_replace('_', ' ', $order['delivery_status'])); ?>

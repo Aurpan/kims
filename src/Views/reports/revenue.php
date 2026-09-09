@@ -38,7 +38,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Period Total</p>
-                    <h4 class="mb-0">৳<?= number_format($periodTotal, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($periodTotal, 0); ?></h4>
                     <small class="text-muted">
                         <?= $periodTotal > $previousTotal ? '↑' : '↓'; ?>
                         vs previous period
@@ -51,7 +51,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Daily Average</p>
-                    <h4 class="mb-0">৳<?= number_format($avgDaily, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($avgDaily, 0); ?></h4>
                     <small class="text-muted"><?= count($dailyData); ?> days</small>
                 </div>
             </div>
@@ -61,7 +61,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Previous Period</p>
-                    <h4 class="mb-0">৳<?= number_format($previousTotal, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($previousTotal, 0); ?></h4>
                     <small class="text-muted d-block">
                         <?php
                         $change = $previousTotal > 0 ? (($periodTotal - $previousTotal) / $previousTotal) * 100 : 0;
@@ -104,7 +104,7 @@
                     ?>
                         <tr>
                             <td><?= date('M d, Y (l)', strtotime($day['date'])); ?></td>
-                            <td class="text-end fw-bold">৳<?= number_format($day['revenue'], 2); ?></td>
+                            <td class="text-end fw-bold">৳<?= number_format($day['revenue'], 0); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -146,7 +146,7 @@ const revenueChart = new Chart(revenueCtx, {
                 beginAtZero: true,
                 ticks: {
                     callback: function(value) {
-                        return '৳' + value.toFixed(2);
+                        return '৳' + value.toFixed(0);
                     }
                 }
             }

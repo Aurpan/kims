@@ -38,7 +38,7 @@
             <div class="card border-0 bg-light">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Total Expenses</p>
-                    <h4 class="mb-0">৳<?= number_format($totalExpenses, 2); ?></h4>
+                    <h4 class="mb-0">৳<?= number_format($totalExpenses, 0); ?></h4>
                 </div>
             </div>
         </div>
@@ -74,7 +74,7 @@
                                             </p>
                                             <small class="text-muted"><?= $cb['count']; ?> expense(s)</small>
                                         </div>
-                                        <h6 class="mb-0">৳<?= number_format($cb['total'], 2); ?></h6>
+                                        <h6 class="mb-0">৳<?= number_format($cb['total'], 0); ?></h6>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -113,7 +113,7 @@
                                     </span>
                                 </td>
                                 <td><?= htmlspecialchars($expense['description']); ?></td>
-                                <td class="text-end fw-bold">৳<?= number_format($expense['amount'], 2); ?></td>
+                                <td class="text-end fw-bold">৳<?= number_format($expense['amount'], 0); ?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>

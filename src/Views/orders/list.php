@@ -127,14 +127,14 @@
                                     <?php endif; ?>
                                 </td>
                                 <td><?= htmlspecialchars($order['customer_name']); ?></td>
-                                <td><small>৳<?= number_format($order['total_amount'], 2); ?></small></td>
+                                <td><small>৳<?= number_format($order['total_amount'], 0); ?></small></td>
                                 <td>
-                                    <div><span class="badge bg-<?= $paymentBadgeClass; ?>" style="font-size:0.7rem;">
+                                    <div class="text-<?= explode(' ', $paymentBadgeClass)[0]; ?> fw-bold small">
                                         <?= ucfirst($order['payment_status']); ?>
-                                    </span></div>
-                                    <div class="mt-1"><span class="badge bg-<?= $deliveryBadgeClass; ?>" style="font-size:0.7rem;">
+                                    </div>
+                                    <div class="mt-1 text-<?= explode(' ', $deliveryBadgeClass)[0]; ?> fw-bold small">
                                         <?= ucfirst(str_replace('_', ' ', $deliveryStatus)); ?>
-                                    </span></div>
+                                    </div>
                                 </td>
                                 <td>
                                     <small><?= date('M d, Y', strtotime($order['created_at'])); ?></small>

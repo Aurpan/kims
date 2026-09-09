@@ -116,8 +116,8 @@
                     </td>
                     <td><?= htmlspecialchars($item['size']); ?></td>
                     <td class="text-right"><?= (int) $item['quantity']; ?></td>
-                    <td class="text-right"><?= number_format($item['unit_price'], 2); ?></td>
-                    <td class="text-right"><?= number_format($item['line_total'], 2); ?></td>
+                    <td class="text-right"><?= number_format($item['unit_price'], 0); ?></td>
+                    <td class="text-right"><?= number_format($item['line_total'], 0); ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -126,15 +126,15 @@
     <table class="totals">
         <tr>
             <td>Items Subtotal</td>
-            <td class="text-right">Tk <?= number_format($itemsSubtotal, 2); ?></td>
+            <td class="text-right">Tk <?= number_format($itemsSubtotal, 0); ?></td>
         </tr>
         <tr>
             <td>Delivery Charge</td>
-            <td class="text-right">Tk <?= number_format($deliveryCharge, 2); ?></td>
+            <td class="text-right">Tk <?= number_format($deliveryCharge, 0); ?></td>
         </tr>
         <tr class="grand">
             <td>Total</td>
-            <td class="text-right">Tk <?= number_format($order['total_amount'], 2); ?></td>
+            <td class="text-right">Tk <?= number_format($order['total_amount'], 0); ?></td>
         </tr>
     </table>
 
